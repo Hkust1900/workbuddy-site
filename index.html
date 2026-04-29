@@ -1,0 +1,4340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>印刷这块我都懂 — 教辅设计需求沟通平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg2: #f5f6f8;
+      --bg3: #ebedf2;
+      --border: rgba(0,0,0,0.08);
+      --border-hover: rgba(0,0,0,0.15);
+      --text: #1a1a1a;
+      --text-muted: rgba(26,26,26,0.55);
+      --text-dim: rgba(26,26,26,0.35);
+      --accent: #e85d3f;
+      --accent2: #f2894a;
+      --accent-glow: rgba(232,93,63,0.08);
+      --radius: 12px;
+      --radius-lg: 20px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+      --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans SC', 'Inter', -apple-system, sans-serif;
+      background: #f8f9fa;
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ─────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ─── HERO ────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(232,93,63,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* 弥散渐变光效背景 */
+    .hero-blobs {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.12;
+      background-size: 200% 200%;
+      animation: blobFloat 15s ease-in-out infinite, blobGradient 8s ease infinite;
+    }
+
+    .blob-1 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #e85d3f 0%, #f97316 50%, #e85d3f 100%);
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s, 0s;
+    }
+
+    .blob-2 {
+      width: 350px;
+      height: 350px;
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 50%, #f97316 100%);
+      top: 20%;
+      right: 15%;
+      animation-delay: -3s, -2s;
+    }
+
+    .blob-3 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #f59e0b 100%);
+      bottom: 20%;
+      left: 20%;
+      animation-delay: -6s, -4s;
+    }
+
+    .blob-4 {
+      width: 250px;
+      height: 250px;
+      background: linear-gradient(135deg, #f43f5e 0%, #f97316 50%, #f43f5e 100%);
+      bottom: 30%;
+      right: 10%;
+      animation-delay: -9s, -6s;
+    }
+
+    .blob-5 {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, #e85d3f 0%, #f59e0b 50%, #e85d3f 100%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -12s, -8s;
+    }
+
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(20px, -20px) scale(1.05); }
+      50% { transform: translate(-15px, 15px) scale(0.98); }
+      75% { transform: translate(15px, 20px) scale(1.02); }
+    }
+
+    @keyframes blobGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .hero-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      max-width: 900px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+
+      height: 6px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    /* 腮红 */
+    .cheeks {
+      display: flex;
+      gap: 56px;
+      justify-content: center;
+      position: absolute;
+      top: 52px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .cheek {
+      width: 18px;
+      height: 12px;
+      background: rgba(255, 150, 150, 0.5);
+      border-radius: 50%;
+    }
+
+    /* 嘴巴 */
+    .mouth {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 14px;
+      border-bottom: 3px solid #1a1a1a;
+      border-radius: 0 0 50% 50%;
+    }
+
+    /* 装饰元素 */
+    .mascot-decoration {
+      position: absolute;
+      top: 0;
+      right: 15px;
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, #f5a623, #e85d3f);
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: decoFloat 3s ease-in-out infinite;
+    }
+
+    .mascot-decoration:nth-child(2) {
+      top: 60px;
+      left: 5px;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #4a90d9, #6ab04c);
+      animation-delay: -1.5s;
+    }
+
+    @keyframes decoFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-15px) scale(1.1); }
+    }
+
+    .hero-content {
+      text-align: left;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(232,93,63,0.3);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--accent2);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+      margin: 0;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, #fbbf24 0%, #f97316 50%, #ea580c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .hero-steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding: 12px 20px;
+      background: rgba(232, 93, 63, 0.06);
+      border: 1px solid rgba(232, 93, 63, 0.15);
+      border-radius: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .hero-steps span {
+      white-space: nowrap;
+    }
+
+    .hero-steps .step-icon {
+      font-size: 14px;
+    }
+
+    .hero-steps .sep {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .btn-primary {
+      padding: 18px 52px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(232,93,63,0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(-1px) scale(0.98);
+    }
+
+    .btn-glow {
+      animation: btnPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes btnPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(232,93,63,0.4); }
+      50% { box-shadow: 0 0 20px 8px rgba(232,93,63,0.2); }
+    }
+
+    .btn-arrow {
+      transition: transform var(--transition);
+    }
+
+    .btn-primary:hover .btn-arrow {
+      transform: translateX(4px);
+    }
+
+    .btn-ghost {
+      padding: 14px 32px;
+      background: #fff;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--border-hover);
+      background: var(--bg2);
+      transform: translateY(-2px);
+    }
+
+    /* ─── STATS BAR ───────────────────────────────── */
+    .stats-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+
+    .stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      justify-content: center;
+      gap: 64px;
+    }
+
+    .stat-item {
+      padding: 28px 0;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ─── SECTIONS ────────────────────────────────── */
+    section {
+      padding: 100px 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 16px; height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .section-title {
+      font-size: clamp(24px, 3.5vw, 40px);
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
+    }
+
+    .section-sub {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 64px;
+      max-width: 500px;
+    }
+
+    /* ─── CATEGORY GRID ───────────────────────────── */
+    #categories {
+      background: var(--bg);
+    }
+
+    .cat-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .cat-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .cat-row .cat-card {
+      flex: 0 0 calc(33.333% - 14px);
+      max-width: calc(33.333% - 14px);
+    }
+
+    .cat-row-3 {
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .cat-row-3 .cat-card {
+      flex: 0 0 calc(33.333% - 14px);
+      max-width: calc(33.333% - 14px);
+    }
+
+    .cat-row-2 {
+      padding-left: calc(16.666% + 7px);
+      padding-right: calc(16.666% + 7px);
+    }
+
+    .cat-row-2 .cat-card {
+      flex: 0 0 calc(50% - 10px);
+      max-width: calc(50% - 10px);
+    }
+
+    .cat-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 16px;
+      padding: 36px 28px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    .cat-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      border-color: var(--accent);
+    }
+
+    .cat-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .cat-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .cat-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .cat-time {
+      font-size: 12px;
+      font-weight: 500;
+      color: #f97316;
+      background: rgba(249,115,22,0.1);
+      padding: 2px 8px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .cat-arrow {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      background: rgba(232,93,63,0.12);
+      border-radius: 50%;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .cat-card {
+      position: relative;
+    }
+
+    .cat-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      padding-bottom: 32px;
+    }
+
+    /* ─── HOW IT WORKS ────────────────────────────── */
+    #how {
+      background: var(--bg2);
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 32px;
+      position: relative;
+    }
+
+    .step-card {
+      text-align: center;
+      padding: 40px 24px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: all var(--transition);
+    }
+
+    .step-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+    }
+
+    .step-num {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 auto 20px;
+    }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* ─── MODAL / DETAIL PAGE ─────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 40px 16px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    /* ─── SPEC MODAL ─────────────────────────────── */
+    .spec-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(10px);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .spec-modal.active { display: flex; }
+    .spec-modal-box {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+      max-width: 520px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      animation: modal-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .spec-modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #eee;
+    }
+    .spec-modal-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .spec-modal-body {
+      padding: 20px 24px;
+    }
+    .spec-rule {
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #333;
+    }
+    .spec-rule:last-child { margin-bottom: 0; }
+    .spec-rule-num {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background: #e85d3f;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 20px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .spec-flow {
+      margin: 8px 0 0 26px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.8;
+    }
+    .spec-flow-step {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .spec-flow-arrow {
+      color: #aaa;
+      font-size: 11px;
+      margin: 0 2px;
+    }
+    .spec-check-row {
+      padding: 16px 24px 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .spec-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .spec-checkbox.checked {
+      background: #e85d3f;
+      border-color: #e85d3f;
+    }
+    .spec-checkbox svg { display: none; }
+    .spec-checkbox.checked svg { display: block; }
+    .spec-check-label {
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+      user-select: none;
+    }
+    .spec-confirm-btn {
+      margin-left: auto;
+      padding: 10px 24px;
+      background: #ccc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: not-allowed;
+      transition: all 0.2s;
+    }
+    .spec-confirm-btn.ready {
+      background: #e85d3f;
+      cursor: pointer;
+    }
+    .spec-confirm-btn.ready:hover {
+      background: #d14d30;
+    }
+    .spec-back-btn {
+      padding: 10px 20px;
+      background: #f0f0f0;
+      color: #555;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .spec-back-btn:hover {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 860px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      overflow: hidden;
+      animation: modal-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes modal-in {
+      from { opacity: 0; transform: scale(0.94) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+      padding: 32px 36px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .modal-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .modal-close {
+      width: 36px; height: 36px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 18px;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .modal-close:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .modal-body {
+      padding: 32px 36px;
+    }
+
+    /* ─── PROJECT NAME INPUT ──────────────────────── */
+    .project-name-section {
+      margin-bottom: 32px;
+    }
+
+    /* ─── PRINT TYPE (印刷版 / 电子版) ─────────────── */
+    .print-type-section {
+      margin-bottom: 32px;
+    }
+    .print-type-options {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .print-type-option {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .print-type-option:hover {
+      border-color: var(--border-hover);
+    }
+    .print-type-option.selected {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+    .print-type-radio {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      transition: all var(--transition);
+      position: relative;
+    }
+    .print-type-option.selected .print-type-radio {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .print-type-option.selected .print-type-radio::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+    }
+    .print-type-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .print-type-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .field-label span { color: var(--accent); }
+
+    .text-input {
+      width: 100%;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      font-family: inherit;
+      transition: all var(--transition);
+      outline: none;
+    }
+
+    .text-input::placeholder { color: var(--text-dim); }
+
+    .text-input:focus {
+      border-color: rgba(232,93,63,0.5);
+      box-shadow: 0 0 0 3px rgba(232,93,63,0.1);
+    }
+
+    textarea.text-input {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.7;
+    }
+
+    /* ─── PROJECT INFO FIELDS ──────────────────────── */
+    .project-info-section {
+      margin-bottom: 28px;
+      padding: 20px;
+      background: #fafafa;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .project-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .project-info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .project-info-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .project-info-label .required { color: var(--accent); }
+    .project-info-label .optional { color: #999; font-weight: 400; font-size: 11px; }
+    .date-input {
+      width: 100%;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .date-input:focus {
+      border-color: rgba(232,93,63,0.5);
+      box-shadow: 0 0 0 3px rgba(232,93,63,0.1);
+      outline: none;
+    }
+    .option-group {
+      display: flex;
+      gap: 8px;
+    }
+    .option-btn {
+      flex: 1;
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+    }
+    .option-btn:hover {
+      border-color: var(--border-hover);
+    }
+    .option-btn.selected {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ─── SIZE OPTIONS ────────────────────────────── */
+    .sub-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sub-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .size-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .size-card {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .size-card:hover { border-color: var(--border-hover); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+    .size-card.selected {
+      border-color: var(--accent);
+      background: rgba(232,93,63,0.06);
+    }
+
+    .size-visual {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 52px;
+      margin-bottom: 12px;
+    }
+
+    .size-rect {
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      transition: all var(--transition);
+    }
+
+    .size-card.selected .size-rect {
+      border-color: var(--accent);
+      background: rgba(232,93,63,0.12);
+    }
+
+    .size-name {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .size-dim {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .size-time {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--accent2);
+      font-weight: 500;
+    }
+
+    /* ─── CALENDAR ────────────────────────────────── */
+    .calendar-section {
+      margin-bottom: 32px;
+    }
+
+    .calendar-wrap {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .cal-header {
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cal-nav-btn {
+      width: 32px; height: 32px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all var(--transition);
+    }
+
+    .cal-nav-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .cal-month-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .cal-grid {
+      padding: 16px;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 8px;
+    }
+
+    .cal-weekday {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 4px;
+    }
+
+    .cal-days {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+
+
+    .day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      padding: 4px;
+      min-height: 60px;
+    }
+
+    .day-cell:hover:not(.empty):not(.past) { background: var(--bg); }
+
+    .day-cell.today {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .day-cell.today::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      width: 4px; height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .day-cell.selected {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .day-cell.selected::after { display: none; }
+
+    .day-cell.past { color: var(--text-dim); cursor: not-allowed; }
+
+    .day-cell.empty { cursor: default; }
+
+    .day-cell.weekend {
+      background: var(--bg2);
+      opacity: 0.6;
+    }
+
+    .day-number {
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .week-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .phase-strip.phase-0 { background: #fb923c; }
+    .phase-strip.phase-1 { background: #f43f5e; }
+    .phase-strip.phase-2 { background: #c084fc; }
+    .phase-strip.phase-3 { background: #60a5fa; }
+    .phase-strip.phase-4 { background: #2dd4bf; }
+    .phase-strip.phase-5 { background: #a3e635; }
+    .phase-strip.phase-6 { background: #facc15; color: #333; }
+    .phase-strip.phase-7 { background: #a16207; color: #fff; }
+    .phase-strip.phase-8 { background: #ec4899; color: #fff; }
+    .phase-strip.phase-9 { background: #14b8a6; color: #fff; }
+    .phase-strip.phase-10 { background: #6366f1; color: #fff; }
+
+    /* 旧样式兼容 */
+    /* 阶段色带 - 绝对定位在行顶部 */
+    .week-row {
+      position: relative;
+    }
+
+    .phase-strips-container {
+      position: absolute;
+      top: 32px;
+      left: 4px;
+      right: 4px;
+      height: 28px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .phase-strip {
+      position: absolute;
+      height: 24px;
+      border-radius: 6px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      color: #fff;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: auto;
+      top: 2px;
+      /* 强制间隙 - 2026-04-16 */
+      box-sizing: border-box;
+    }
+
+    .phase-strip.phase-0 { background: #fb923c; }
+    .phase-strip.phase-1 { background: #f43f5e; }
+    .phase-strip.phase-2 { background: #c084fc; }
+    .phase-strip.phase-3 { background: #60a5fa; }
+    .phase-strip.phase-4 { background: #2dd4bf; }
+    .phase-strip.phase-5 { background: #a3e635; }
+    .phase-strip.phase-6 { background: #facc15; color: #333; }
+    .phase-strip.phase-7 { background: #a16207; color: #fff; }
+    .phase-strip.phase-8 { background: #ec4899; color: #fff; }
+    .phase-strip.phase-9 { background: #14b8a6; color: #fff; }
+    .phase-strip.phase-10 { background: #6366f1; color: #fff; }
+
+    /* 兼容旧样式 */
+    .phase-bar {
+      width: 100%;
+      height: 24px;
+      border-radius: 4px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .phase-bar.phase-0 { background: #fb923c; }
+    .phase-bar.phase-1 { background: #f43f5e; }
+    .phase-bar.phase-2 { background: #c084fc; }
+    .phase-bar.phase-3 { background: #60a5fa; }
+    .phase-bar.phase-4 { background: #2dd4bf; }
+    .phase-bar.phase-5 { background: #a3e635; }
+    .phase-bar.phase-6 { background: #facc15; color: #333; }
+    .phase-bar.phase-7 { background: #a16207; color: #fff; }
+    .phase-bar.phase-8 { background: #ec4899; color: #fff; }
+    .phase-bar.phase-9 { background: #14b8a6; color: #fff; }
+    .phase-bar.phase-10 { background: #6366f1; color: #fff; }
+
+    /* 保留旧的 cal-day 样式用于兼容 */
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+    }
+
+    .cal-day:hover:not(.empty):not(.past) { background: var(--bg); }
+
+    .cal-day.today {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .cal-day.today::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      width: 4px; height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .cal-day.selected {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .cal-day.selected::after { display: none; }
+
+    .cal-day.past { color: var(--text-dim); cursor: not-allowed; }
+
+    .cal-day.empty { cursor: default; }
+
+    .cal-day.warning {
+      background: rgba(251,146,60,0.2);
+      color: #fb923c;
+    }
+
+    .cal-day.danger {
+      background: rgba(239,68,68,0.2);
+      color: #ef4444;
+    }
+
+    /* ─── WORKFLOW PHASE COLORS ───────────────────── */
+    /* phase-0: 初稿排版  暖橙 */
+    .cal-day.phase-0 { background: rgba(251,146,60,0.22); color: #fb923c; border-radius: 0; }
+    /* phase-1: 1审       玫红 */
+    .cal-day.phase-1 { background: rgba(244,63,94,0.22); color: #f43f5e; border-radius: 0; }
+    /* phase-2: 1校       紫  */
+    .cal-day.phase-2 { background: rgba(168,85,247,0.22); color: #c084fc; border-radius: 0; }
+    /* phase-3: 2审       蓝  */
+    .cal-day.phase-3 { background: rgba(59,130,246,0.22); color: #60a5fa; border-radius: 0; }
+    /* phase-4: 2校       青绿 */
+    .cal-day.phase-4 { background: rgba(20,184,166,0.22); color: #2dd4bf; border-radius: 0; }
+    /* phase-5: 3审       草绿 */
+    .cal-day.phase-5 { background: rgba(132,204,22,0.22); color: #a3e635; border-radius: 0; }
+    /* phase-6: 3校       金黄 */
+    .cal-day.phase-6 { background: rgba(234,179,8,0.22); color: #facc15; border-radius: 0; }
+    /* phase-7: 印刷     深棕 */
+    .cal-day.phase-7 { background: rgba(161,98,7,0.22); color: #a16207; border-radius: 0; }
+    /* phase-8 */
+    .cal-day.phase-8 { background: rgba(236,72,153,0.22); color: #ec4899; border-radius: 0; }
+    /* phase-9 */
+    .cal-day.phase-9 { background: rgba(20,184,166,0.22); color: #14b8a6; border-radius: 0; }
+    /* phase-10 */
+    .cal-day.phase-10 { background: rgba(99,102,241,0.22); color: #6366f1; border-radius: 0; }
+
+    /* 阶段首末天圆角恢复 */
+    .cal-day.phase-start { border-radius: 8px 0 0 8px !important; }
+    .cal-day.phase-end   { border-radius: 0 8px 8px 0 !important; }
+    .cal-day.phase-start.phase-end { border-radius: 8px !important; }
+
+    /* 选中叠加：保留选中色，边框提示阶段色 */
+    .cal-day.selected.phase-0,
+    .cal-day.selected.phase-1,
+    .cal-day.selected.phase-2,
+    .cal-day.selected.phase-3,
+    .cal-day.selected.phase-4,
+    .cal-day.selected.phase-5,
+    .cal-day.selected.phase-6,
+    .cal-day.selected.phase-7,
+    .cal-day.selected.phase-8,
+    .cal-day.selected.phase-9,
+    .cal-day.selected.phase-10 {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ─── WORKFLOW LEGEND ──────────────────────────── */
+    .workflow-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .schedule-result {
+      margin-top: 16px;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+    }
+
+    .schedule-result.ok { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #4ade80; }
+    .schedule-result.tight { background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.25); color: #fb923c; }
+    .schedule-result.danger { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; }
+
+    /* ─── WORKFLOW TIMELINE ───────────────────────── */
+    .workflow-section {
+      margin-bottom: 32px;
+    }
+
+    .workflow-timeline {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 12px;
+    }
+
+    .workflow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 60px;
+      position: relative;
+    }
+
+    .workflow-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 16px;
+      right: -1px;
+      width: 2px;
+      height: 16px;
+      background: var(--border);
+    }
+
+    .workflow-step-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg3);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .workflow-step-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 3px;
+      white-space: nowrap;
+    }
+
+    .workflow-step-days {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .workflow-connector {
+      flex: 0 0 24px;
+      display: flex;
+      align-items: flex-start;
+      padding-top: 14px;
+    }
+
+    .workflow-connector-line {
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--border) 0%, var(--accent2) 100%);
+      opacity: 0.4;
+    }
+
+    .workflow-total {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .workflow-total strong {
+      color: var(--accent);
+    }
+
+    /* workflow 气泡阶段色（与日历同色系） */
+    .workflow-step[data-phase="0"] .workflow-step-dot { border-color: #fb923c; color: #fb923c; }
+    .workflow-step[data-phase="1"] .workflow-step-dot { border-color: #f43f5e; color: #f43f5e; }
+    .workflow-step[data-phase="2"] .workflow-step-dot { border-color: #a855f7; color: #c084fc; }
+    .workflow-step[data-phase="3"] .workflow-step-dot { border-color: #3b82f6; color: #60a5fa; }
+    .workflow-step[data-phase="4"] .workflow-step-dot { border-color: #14b8a6; color: #2dd4bf; }
+    .workflow-step[data-phase="5"] .workflow-step-dot { border-color: #84cc16; color: #a3e635; }
+    .workflow-step[data-phase="6"] .workflow-step-dot { border-color: #eab308; color: #facc15; }
+
+    .workflow-step[data-phase="0"] .workflow-step-days { color: #fb923c; }
+    .workflow-step[data-phase="1"] .workflow-step-days { color: #f43f5e; }
+    .workflow-step[data-phase="2"] .workflow-step-days { color: #c084fc; }
+    .workflow-step[data-phase="3"] .workflow-step-days { color: #60a5fa; }
+    .workflow-step[data-phase="4"] .workflow-step-days { color: #2dd4bf; }
+    .workflow-step[data-phase="5"] .workflow-step-days { color: #a3e635; }
+    .workflow-step[data-phase="6"] .workflow-step-days { color: #facc15; }
+
+    /* ─── LOCAL UPLOAD AREA ─────────────────────────── */
+    .upload-dropzone {
+      margin-bottom: 16px;
+    }
+    .upload-dropzone-box {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg3);
+    }
+    .upload-dropzone-box:hover,
+    .upload-dropzone-box.drag-over {
+      border-color: var(--accent);
+      background: rgba(232, 93, 63, 0.05);
+    }
+    .upload-dropzone-box input[type="file"] {
+      display: none;
+    }
+    .upload-dropzone-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+    .upload-dropzone-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .upload-dropzone-hint {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* ─── IMAGE PREVIEW GRID ───────────────────────── */
+    .img-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .img-preview-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+    }
+    .img-preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .img-preview-item .remove-img {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .img-preview-item .remove-img:hover {
+      background: #e85d3f;
+    }
+    .img-preview-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 12px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* ─── UPLOAD SECTION ─────────────────────────── */
+    .upload-section {
+      margin-bottom: 32px;
+    }
+
+    .huaban-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .huaban-icon {
+      width: 56px; height: 56px;
+      background: #FF4D4F;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .huaban-btn {
+      padding: 11px 22px;
+      background: #FF4D4F;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .huaban-btn:hover { background: #d9363e; transform: translateY(-1px); }
+
+    /* ─── CONTENT GUIDE ──────────────────────────────── */
+    .content-guide-section {
+      margin: 28px 0;
+    }
+
+    .cg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .cg-left {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    .cg-left-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cg-field {
+      margin-bottom: 14px;
+    }
+
+    .cg-field:last-child { margin-bottom: 0; }
+
+    .cg-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .cg-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg2);
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    .cg-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .cg-right {
+      background: #f5f6fa;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .cg-right-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    /* ─── MOCKUP ──────────────────────────────────────── */
+    /* 书脊 + 封面横向排列，保持固定高度居中 */
+    .mcg-cover-wrap {
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(3px 3px 8px rgba(0,0,0,0.2));
+    }
+
+    .mcg-cover-layout {
+      display: flex;
+      align-items: stretch;
+      gap: 5px;
+    }
+
+    .mcg-spine {
+      width: 22px;
+      height: 220px;
+      background: linear-gradient(to right, #bbb, #e0e0e0, #bbb);
+      border-radius: 2px 0 0 2px;
+      font-size: 8px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      letter-spacing: 2px;
+      flex-shrink: 0;
+      padding: 0 4px;
+      overflow: hidden;
+    }
+
+    .mcg-cover {
+      width: 170px;
+      height: 220px;
+      background: linear-gradient(145deg, #5B7FBF 0%, #3D5A9B 60%, #2E4780 100%);
+      border-radius: 0 6px 6px 0;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+    .mcg-series {
+      font-size: 8px;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .mcg-title {
+      font-size: 18px;
+      color: #fff;
+      font-weight: 800;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .mcg-subtitle {
+      font-size: 9px;
+      color: rgba(255,255,255,0.8);
+      text-align: center;
+    }
+
+    .mcg-selling {
+      font-size: 8px;
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+      padding: 3px 6px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .mcg-teacher-label {
+      font-size: 8px;
+      color: rgba(255,255,255,0.65);
+      text-align: center;
+    }
+
+    /* 书盒 layout - 居中大盒子 */
+    .mcg-box-wrap {
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(3px 4px 16px rgba(0,0,0,0.2));
+    }
+
+    .mcg-box-main {
+      width: 200px;
+      height: 260px;
+      background: linear-gradient(145deg, #C09A6B 0%, #A07D52 60%, #8B6840 100%);
+      border-radius: 8px 8px 0 0;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 4px 4px 16px rgba(0,0,0,0.25);
+      position: relative;
+    }
+
+    .mcg-box-selling {
+      font-size: 10px;
+      color: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.12);
+      border-radius: 4px;
+      padding: 3px 7px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .mcg-box-title {
+      font-size: 18px;
+      color: #fff;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .mcg-box-pack {
+      font-size: 10px;
+      color: rgba(255,255,255,0.65);
+      text-align: center;
+    }
+
+    .mcg-box-teacher-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      margin-top: auto;
+    }
+
+    .mcg-box-target {
+      font-size: 9px;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+    }
+
+    .url-input-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .url-input-row .text-input { flex: 1; }
+
+    .btn-add-url {
+      padding: 0 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .btn-add-url:hover { background: var(--accent2); }
+
+    /* ─── REF LINKS LIST ──────────────────────────── */
+    .ref-links-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .ref-link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: all var(--transition);
+    }
+
+    .ref-link-item:hover {
+      border-color: var(--border-hover);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .ref-link-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--accent-glow);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .ref-link-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ref-link-url {
+      font-size: 13px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ref-link-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .ref-link-remove {
+      width: 26px; height: 26px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+    }
+
+    .ref-link-remove:hover {
+      background: rgba(232,93,63,0.15);
+      color: var(--accent);
+    }
+
+    /* ─── CUSTOM SIZE ─────────────────────────────── */
+    .custom-size-section {
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px dashed var(--border-hover);
+      border-radius: var(--radius);
+    }
+
+    .custom-size-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .custom-size-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .custom-size-input {
+      width: 90px;
+      padding: 10px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 14px;
+      text-align: center;
+      transition: all var(--transition);
+    }
+
+    .custom-size-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .custom-size-x {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .custom-size-unit {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .custom-size-btn {
+      padding: 10px 18px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .custom-size-btn:hover {
+      background: var(--accent2);
+    }
+
+    .custom-size-hint {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 10px;
+    }
+
+    .preview-remove {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 22px; height: 22px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+
+    .preview-remove:hover { background: var(--accent); }
+
+
+
+    /* ─── ACTION BAR ──────────────────────────────── */
+    .modal-footer {
+      padding: 24px 36px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .modal-footer-info {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .modal-footer-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-export {
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-export:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(232,93,63,0.35);
+    }
+
+    /* ─── PDF PREVIEW ─────────────────────────────── */
+    #pdf-canvas {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      width: 794px;
+      pointer-events: none;
+    }
+
+    .pdf-sheet {
+      width: 794px;
+      max-height: 4000px;
+      overflow: hidden;
+      background: #fff;
+      color: #111;
+      font-family: 'Noto Sans SC', sans-serif;
+      padding: 64px;
+    }
+
+    .pdf-header-bar {
+      background: #e85d3f;
+      color: #fff;
+      padding: 24px 32px;
+      border-radius: 12px;
+      margin-bottom: 36px;
+    }
+
+    .pdf-header-bar h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }
+
+    .pdf-header-bar p {
+      font-size: 13px;
+      opacity: 0.85;
+    }
+
+    .pdf-section {
+      margin-bottom: 28px;
+      padding: 20px 24px;
+      background: #f8f8f8;
+      border-radius: 10px;
+      border-left: 4px solid #e85d3f;
+    }
+
+    .pdf-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .pdf-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111;
+    }
+
+    .pdf-img-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .pdf-img-item {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .pdf-img-item img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    .pdf-footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 11px;
+      color: #aaa;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ─── PDF CALENDAR ─────────────────────────────── */
+    /* 完全复制网页版 .day-cell + .cal-day.phase-X 结构 */
+    .pdf-calendar {
+      margin-top: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .pdf-cal-header {
+      background: #e85d3f;
+      color: #fff;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    /* 日历网格 */
+    .pdf-cal-grid {
+      background: #fff;
+      padding: 8px;
+    }
+    /* 双月上下罗列，每个占满宽度 */
+    .pdf-month-wrapper {
+      margin-bottom: 12px;
+    }
+    .pdf-month-wrapper:last-child {
+      margin-bottom: 0;
+    }
+    .pdf-month-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .pdf-month-grid {
+      background: #fff;
+    }
+    .pdf-weekday-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .pdf-cal-weekday {
+      text-align: center;
+      padding: 6px 0;
+      font-size: 11px;
+      color: #999;
+      font-weight: 600;
+    }
+    .pdf-week-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0;
+    }
+    /* 每日格子 — 背景色 & 圆角全部由 JS 写 inline style，html2canvas 100% 可靠 */
+    .pdf-cal-day {
+      height: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      font-size: 13px;
+      padding: 4px 2px 2px;
+      box-sizing: border-box;
+      background: transparent;
+      overflow: visible;
+    }
+    .pdf-cal-day.empty {
+      background: transparent !important;
+    }
+    .pdf-cal-day.weekend {
+      background: rgba(0,0,0,0.04);
+    }
+    .pdf-cal-day.today {
+      color: #e85d3f;
+      font-weight: 700;
+    }
+    .pdf-day-number {
+      font-size: 12px;
+      color: #555;
+      font-weight: 500;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    /* 选中日期格子 */
+    .pdf-cal-day.selected {
+      background: #e85d3f !important;
+      border-radius: 6px !important;
+    }
+    .pdf-cal-day.selected .pdf-day-number {
+      color: #fff;
+    }
+    /* 阶段标签 — 贴格子底部，overflow:visible 溢出不裁切 */
+    .pdf-phase-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: #333;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: visible;
+      width: 0;           /* 不占宽度，靠 overflow:visible 溢出 */
+      text-align: left;
+      margin-top: auto;
+      padding-bottom: 2px;
+      align-self: flex-start;
+      padding-left: 2px;
+    }
+    /* 图例 */
+    .pdf-cal-legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .pdf-cal-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #888;
+    }
+    .pdf-cal-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .pdf-link {
+      color: #1a56db;
+      text-decoration: underline;
+      word-break: break-all;
+      font-size: 12px;
+      display: block;
+      line-height: 1.6;
+      cursor: pointer;
+    }
+
+    /* ─── FOOTER ──────────────────────────────────── */
+    footer {
+      padding: 48px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ─── SCROLLBAR ───────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
+
+    /* ─── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 640px) {
+      .stats-inner { gap: 24px; flex-wrap: wrap; }
+      .modal-header, .modal-body, .modal-footer { padding-left: 20px; padding-right: 20px; }
+      .nav-links { display: none; }
+    }
+
+    /* ─── TOAST ───────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      font-size: 14px;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      max-width: 320px;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success::before { content: '✅'; font-size: 16px; }
+    .toast.error::before { content: '⚠️'; font-size: 16px; }
+    .toast.info::before { content: '💡'; font-size: 16px; }
+
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" onclick="goHome()">
+      <div class="logo-dot"></div>
+      印刷这块我都懂
+    </a>
+    <ul class="nav-links">
+      <li><a href="#categories">设计品类</a></li>
+      <li><a href="#how">使用流程</a></li>
+      <li><a href="#" onclick="scrollToCategories()">开始提需求</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- PAGES -->
+<div id="page-home">
+
+  <!-- HERO -->
+  <section class="hero">
+    <!-- 弥散渐变光效背景 -->
+    <div class="hero-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+      <div class="blob blob-4"></div>
+      <div class="blob blob-5"></div>
+    </div>
+    <div class="hero-inner">
+      <div class="hero-badge">🎓 专为教辅设计打造的需求沟通工具</div>
+      <h1>清晰表达设计需求<br><span>让沟通更轻松</span></h1>
+      <p>帮助教研和运营准确描述想要的物料效果<br>设计师一眼看懂，减少反复沟通</p>
+      <div class="hero-cta">
+        <button class="btn-primary btn-glow" onclick="scrollToCategories()">
+          <span class="btn-text">📋 开始提设计需求</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+      <div class="hero-steps">
+        <span class="step-icon">📋</span>
+        <span>选品类尺寸</span>
+        <span class="sep">›</span>
+        <span>定使用时间</span>
+        <span class="sep">›</span>
+        <span>附参考图</span>
+        <span class="sep">›</span>
+        <span>导需求 PDF</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section id="categories">
+    <div class="container">
+      <div class="section-label">设计品类</div>
+      <h2 class="section-title">你想做什么？</h2>
+      <p class="section-sub">选择最接近你需求的品类，我们帮你理清楚尺寸、周期和风格</p>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+  </section>
+
+</div><!-- /page-home -->
+
+<!-- MODAL: 内文版式设计规范说明 -->
+<div class="spec-modal" id="spec-modal">
+  <div class="spec-modal-box">
+    <div class="spec-modal-header">
+      <div class="spec-modal-title">📋 重要规范与说明（固定内容，请务必阅读）</div>
+    </div>
+    <div class="spec-modal-body" id="spec-modal-body">
+      <div class="spec-rule">
+        <span class="spec-rule-num">1</span>短期班仅可由 <strong>运营 / 商务运营</strong> 开启与确认终结。
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">2</span>单本书目标 <strong>150页</strong> 左右，允许有 ±20% 的浮动（即120-180页）。
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">3</span>新书单本需预留<strong>至少36个工作日</strong>，单纯审校时间不得少于19个工作日
+        <div class="spec-flow">
+          <div class="spec-flow-step">模版设计5d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>初排5d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>一审5d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>一改4d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>二审4d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>二改3d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>三审3d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>三改2d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>打印样书3d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>样书审核+修改+提交印刷2d</div>
+        </div>
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">4</span>书籍页数尽量是 <strong>8的整倍数</strong>
+      </div>
+    </div>
+    <div class="spec-check-row" style="justify-content: space-between; align-items: center;">
+      <button class="spec-back-btn" onclick="closeSpecModal()">← 返回</button>
+      <button class="spec-confirm-btn ready" id="spec-confirm-btn" onclick="confirmSpecAndOpen()">确认并继续</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 品类详情 + 需求收集 -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal-content">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-cat-name">讲义设计</div>
+        <div class="modal-subtitle" id="modal-cat-desc">适用于课堂讲义、学科资料、知识手册</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 项目名称 -->
+      <div class="project-name-section">
+        <div class="field-label">📌 项目名称 <span>*</span></div>
+        <input class="text-input" id="project-name" type="text" placeholder="例：2026春季高中数学讲义 / 暑假冲刺礼盒…" />
+      </div>
+
+      <!-- 项目基本信息 -->
+      <div class="project-info-section">
+        <div class="project-info-grid">
+          <!-- 项目启动时间 -->
+          <div class="project-info-item">
+            <div class="project-info-label">📅 项目启动时间</div>
+            <input type="date" class="date-input" id="project-start-date" />
+          </div>
+          <!-- 项目负责人 -->
+          <div class="project-info-item">
+            <div class="project-info-label">👤 项目负责人 <span class="required">*</span></div>
+            <input class="text-input" id="project-owner" type="text" placeholder="必填" />
+          </div>
+          <!-- 运营对接人 -->
+          <div class="project-info-item">
+            <div class="project-info-label">🎯 运营对接人 <span class="optional">（选填）</span></div>
+            <input class="text-input" id="project-ops" type="text" placeholder="选填" />
+          </div>
+          <!-- 教研对接人 -->
+          <div class="project-info-item">
+            <div class="project-info-label">📚 教研对接人 <span class="optional">（选填）</span></div>
+            <input class="text-input" id="project-dev" type="text" placeholder="选填" />
+          </div>
+        </div>
+        <div class="project-info-grid" style="margin-top: 16px;">
+          <!-- 图书类型 -->
+          <div class="project-info-item">
+            <div class="project-info-label">📖 图书类型</div>
+            <div class="option-group">
+              <div class="option-btn" data-field="book-type" data-value="new" onclick="selectOption(this)">新书首发</div>
+              <div class="option-btn" data-field="book-type" data-value="update" onclick="selectOption(this)">旧书更新迭代</div>
+            </div>
+          </div>
+          <!-- 图书属性 -->
+          <div class="project-info-item">
+            <div class="project-info-label">🏷️ 图书属性</div>
+            <div class="option-group">
+              <div class="option-btn" data-field="book-attr" data-value="self" onclick="selectOption(this)">自营</div>
+              <div class="option-btn" data-field="book-attr" data-value="publish" onclick="selectOption(this)">出版</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 版本类型（仅内文版式设计和封面设计显示） -->
+      <div class="print-type-section" id="print-type-section" style="display:none;">
+        <div class="field-label">📦 版本类型 <span>*</span></div>
+        <div class="print-type-options">
+          <div class="print-type-option" id="print-type-print" onclick="selectPrintType('print')">
+            <div class="print-type-radio"></div>
+            <div class="print-type-info">
+              <div class="print-type-name">印刷版</div>
+              <div class="print-type-desc">含15天印刷交付周期</div>
+            </div>
+          </div>
+          <div class="print-type-option" id="print-type-digital" onclick="selectPrintType('digital')">
+            <div class="print-type-radio"></div>
+            <div class="print-type-info">
+              <div class="print-type-name">电子版</div>
+              <div class="print-type-desc">仅设计稿，无印刷周期</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 尺寸选择 -->
+      <div class="sub-title">📐 选择尺寸规格</div>
+      <div class="size-grid" id="size-grid"></div>
+
+      <!-- 自定义尺寸 -->
+      <div class="custom-size-section">
+        <div class="custom-size-title">✏️ 自定义尺寸（如上方无合适选项）</div>
+        <div class="custom-size-row">
+          <input class="custom-size-input" id="custom-w" type="number" placeholder="宽度" min="1" />
+          <span class="custom-size-x">×</span>
+          <input class="custom-size-input" id="custom-h" type="number" placeholder="高度" min="1" />
+          <span class="custom-size-unit">mm</span>
+          <button class="custom-size-btn" onclick="applyCustomSize()">使用自定义尺寸</button>
+        </div>
+        <div class="custom-size-hint">输入实际印刷尺寸（毫米），系统将自动计算设计工期</div>
+      </div>
+
+      <!-- 审校流程（仅部分品类显示） -->
+      <div class="workflow-section" id="workflow-section" style="display:none;">
+        <div class="sub-title">🔄 设计审校流程</div>
+        <div class="workflow-timeline" id="workflow-timeline"></div>
+        <div class="workflow-total" id="workflow-total"></div>
+      </div>
+
+      <!-- 使用日期 -->
+      <div class="calendar-section">
+        <div class="sub-title">📅 使用时间</div>
+        <div class="calendar-wrap">
+          <div class="cal-header">
+            <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+            <div class="cal-month-title" id="cal-month-title">2026年4月</div>
+            <button class="cal-nav-btn" onclick="calNext()">›</button>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-weekdays">
+              <div class="cal-weekday">日</div><div class="cal-weekday">一</div>
+              <div class="cal-weekday">二</div><div class="cal-weekday">三</div>
+              <div class="cal-weekday">四</div><div class="cal-weekday">五</div>
+              <div class="cal-weekday">六</div>
+            </div>
+            <div class="cal-days" id="cal-days"></div>
+          </div>
+        </div>
+        <div class="schedule-result" id="schedule-result"></div>
+        <div class="workflow-legend" id="workflow-legend" style="display:none;"></div>
+      </div>
+
+      <!-- 风格参考 -->
+      <!-- 参考图上传 -->
+      <div class="upload-section">
+        <div class="sub-title">🖼️ 参考图上传</div>
+        <div class="upload-dropzone" id="upload-dropzone">
+          <div class="upload-dropzone-box" id="dropzone-box">
+            <input type="file" id="file-input" accept="image/*" multiple />
+            <div class="upload-dropzone-icon">📁</div>
+            <div class="upload-dropzone-text">点击或拖拽上传图片</div>
+            <div class="upload-dropzone-hint">支持 JPG、PNG、GIF、WebP，单张不超过 10MB，可多选</div>
+          </div>
+        </div>
+        <div class="img-preview-grid" id="img-preview-grid"></div>
+      </div>
+
+      <!-- 花瓣网跳转 -->
+      <div class="huaban-card">
+        <div class="huaban-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="14" fill="#FF4D4F"/>
+            <path d="M8 10c2-2 5-2 7 1s2 6 0 8l-7 7v-6c-2-1-3-3-2-5s4-3 2-5z" fill="white"/>
+          </svg>
+        </div>
+        <div style="flex:1; min-width:180px;">
+          <h4 style="margin:0 0 4px;font-size:15px;font-weight:600;">去花瓣网找参考图</h4>
+          <p style="margin:0;font-size:13px;color:var(--text-muted);">点击按钮自动跳转花瓣网并搜索对应关键词，在搜索结果里找到你喜欢的风格图片</p>
+        </div>
+        <button class="huaban-btn" id="huaban-btn" onclick="openHuaban()">
+          🔗 去花瓣网搜索
+        </button>
+      </div>
+
+      <!-- 参考图链接（可选补充） -->
+      <div class="upload-section">
+        <div class="sub-title">🔗 或粘贴图片链接</div>
+        <div class="url-input-row">
+          <input class="text-input" id="ref-url-input" type="text" placeholder="粘贴图片链接（可多次添加）" />
+          <button class="btn-add-url" onclick="addRefUrl()">＋ 添加链接</button>
+        </div>
+        <div class="ref-links-list" id="ref-links-list"></div>
+      </div>
+
+      <!-- 内容填写引导 -->
+      <div class="content-guide-section" id="content-guide-section">
+        <div class="sub-title">✏️ 内容信息</div>
+        <div class="cg-grid">
+          <div class="cg-left" id="cg-left">
+            <!-- JS 动态填充 -->
+          </div>
+          <div class="cg-right" id="cg-right">
+            <div class="cg-right-title">示意图（实时预览填写效果）</div>
+            <div id="cg-mockup" style="flex:1;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden;">
+              <!-- JS 动态填充 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 备注描述 -->
+      <div>
+        <div class="field-label">📝 需求备注</div>
+        <textarea class="text-input" id="project-notes" placeholder="补充说明项目特殊要求，例如：需要双语排版 / 封面需要烫金工艺 / 特殊装订方式 / 印数 / 印刷预算…"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-info" id="footer-info">请先填写项目名称和选择尺寸规格</div>
+      <div class="modal-footer-actions">
+        <button class="btn-ghost" onclick="closeModal()">取消</button>
+        <button class="btn-export" onclick="exportPDF()">📄 导出需求单 PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="logo" style="font-size:15px; cursor:default">
+      <div class="logo-dot"></div>
+      印刷这块我都懂
+    </div>
+    <div class="footer-copy">专为教辅设计师与教研运营打造 · 告别需求对不上的尴尬</div>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- PDF 渲染容器 -->
+<div id="pdf-canvas" aria-hidden="true"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════
+
+const CATEGORIES = [
+  {
+    id: 'handy',
+    icon: '📖', name: '内文版式设计',
+    desc: '课堂讲义、学科讲解手册、知识总结册',
+    pinterestKw: '教辅讲义设计 排版 学科',
+    designDays: 36,
+    workflow: [
+      { label: '模版设计', days: 5 },
+      { label: '初排', days: 5 },
+      { label: '一审', days: 5 },
+      { label: '一改', days: 4 },
+      { label: '二审', days: 4 },
+      { label: '二改', days: 3 },
+      { label: '三审', days: 3 },
+      { label: '三改', days: 2 },
+      { label: '打印样书', days: 3 },
+      { label: '样书审核+修改+提交印刷', days: 2 },
+    ],
+    sizes: [
+      { name: '210×285mm', dim: '常用尺寸', w: 37, h: 50, time: '36 工作日' },
+      { name: '210×297mm', dim: 'A4 标准', w: 36, h: 50, time: '36 工作日' },
+      { name: '297×210mm', dim: 'A4 横版', w: 50, h: 36, time: '36 工作日' },
+      { name: '176×250mm', dim: 'B5 小册', w: 30, h: 43, time: '36 工作日' },
+      { name: '148×210mm', dim: 'A5 便携', w: 26, h: 36, time: '36 工作日' },
+      { name: '185×260mm', dim: '正度16开', w: 32, h: 45, time: '36 工作日' },
+      { name: '297×420mm', dim: 'A3 大开', w: 50, h: 70, time: '36 工作日' },
+    ]
+  },
+  {
+    id: 'workbook',
+    icon: '✏️', name: '练习册设计',
+    desc: '配套练习、作业册、强化训练册',
+    pinterestKw: '练习册 作业本 设计 儿童教材',
+    designDays: 36,
+    workflow: [
+      { label: '模版设计', days: 5 },
+      { label: '初排', days: 5 },
+      { label: '一审', days: 5 },
+      { label: '一改', days: 4 },
+      { label: '二审', days: 4 },
+      { label: '二改', days: 3 },
+      { label: '三审', days: 3 },
+      { label: '三改', days: 2 },
+      { label: '打印样书', days: 3 },
+      { label: '样书审核+修改+提交印刷', days: 2 },
+    ],
+    sizes: [
+      { name: '210×285mm', dim: '常用尺寸', w: 37, h: 50, time: '36 工作日' },
+      { name: '210×297mm', dim: 'A4 标准', w: 36, h: 50, time: '36 工作日' },
+      { name: '176×250mm', dim: 'B5 主流', w: 30, h: 43, time: '36 工作日' },
+      { name: '148×210mm', dim: 'A5 小本', w: 26, h: 36, time: '36 工作日' },
+      { name: '140×203mm', dim: '大32开', w: 24, h: 35, time: '36 工作日' },
+      { name: '297×210mm', dim: 'A4 横版', w: 50, h: 36, time: '36 工作日' },
+    ]
+  },
+  {
+    id: 'cover',
+    icon: '🎨', name: '封面设计',
+    desc: '教辅封面、系列丛书封面、精装护封设计',
+    pinterestKw: '书籍封面设计 儿童教材封面 教辅封面',
+    designDays: 12,
+    workflow: [
+      { label: '大方向', days: 2 },
+      { label: '初稿', days: 3 },
+      { label: '修改', days: 2 },
+      { label: '打印样书', days: 3 },
+      { label: '样书审核+修改+提交印刷', days: 2 },
+    ],
+    sizes: [
+      { name: '210×285mm', dim: '常用尺寸', w: 37, h: 50, time: '12 工作日' },
+      { name: '210×297mm', dim: 'A4 书封', w: 36, h: 50, time: '12 工作日' },
+      { name: '176×250mm', dim: 'B5 书封', w: 30, h: 43, time: '12 工作日' },
+      { name: '148×210mm', dim: 'A5 书封', w: 26, h: 36, time: '12 工作日' },
+      { name: '580×297mm', dim: '含勒口封面（展开）', w: 50, h: 50, time: '12 工作日' },
+      { name: '定制尺寸', dim: '精装护封（展开含折叠）', w: 50, h: 50, time: '12 工作日' },
+    ]
+  },
+  {
+    id: 'handcard',
+    icon: '🃏', name: '手卡设计',
+    desc: '知识点卡片、口语卡、单词卡、记忆卡',
+    pinterestKw: '单词卡 知识卡片 学习卡 设计',
+    designDays: 36,
+    workflow: [
+      { label: '模版设计', days: 5 },
+      { label: '初排', days: 5 },
+      { label: '一审', days: 5 },
+      { label: '一改', days: 4 },
+      { label: '二审', days: 4 },
+      { label: '二改', days: 3 },
+      { label: '三审', days: 3 },
+      { label: '三改', days: 2 },
+      { label: '打印样书', days: 3 },
+      { label: '样书审核+修改+提交印刷', days: 2 },
+    ],
+    sizes: [
+      { name: '85×55mm', dim: '标准手卡', w: 44, h: 28, time: '36 工作日' },
+      { name: '100×70mm', dim: '知识小卡', w: 42, h: 30, time: '36 工作日' },
+      { name: '105×74mm', dim: 'A7 卡片', w: 43, h: 30, time: '36 工作日' },
+      { name: '50×190mm', dim: '书签卡', w: 18, h: 50, time: '36 工作日' },
+      { name: '90×90mm', dim: '方形卡', w: 35, h: 35, time: '36 工作日' },
+      { name: '170×110mm', dim: '折叠手卡（折后85×110）', w: 44, h: 38, time: '36 工作日' },
+    ]
+  },
+  {
+    id: 'boxbook',
+    icon: '📦', name: '书盒 / 礼盒全案',
+    desc: '教辅套装礼盒、精装书盒、开学大礼包',
+    pinterestKw: '书盒包装设计 礼盒 教辅 精装',
+    designDays: 25,
+    workflow: [
+      { label: '初稿设计', days: 5 },
+      { label: '打样确认', days: 5 },
+      { label: '样品审核+修改+提交印刷', days: 2 },
+      { label: '印刷', days: 15 },
+    ],
+    sizes: [
+      { name: '230×190×60mm', dim: '标准套装盒', w: 40, h: 32, time: '25 工作日' },
+      { name: '300×230×80mm', dim: '大套装礼盒', w: 50, h: 39, time: '25 工作日' },
+      { name: '320×240×50mm', dim: 'A4 档案盒', w: 54, h: 41, time: '25 工作日' },
+      { name: '200×150×50mm', dim: '小开本盒', w: 34, h: 26, time: '25 工作日' },
+      { name: '280×200×80mm', dim: '天地盖礼盒', w: 47, h: 34, time: '25 工作日' },
+    ]
+  },
+];
+
+
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let state = {
+  currentCat: null,
+  selectedSize: null,
+
+  selectedDate: null,
+  refImages: [], // { type:'url'|'file', src, label }
+  calYear: 2026,
+  calMonth: 3, // 0-indexed (3 = April)
+  printType: null, // 'print' | 'digital' — 仅内文版式设计和封面设计
+  contentGuide: {}, // { fieldId: value } 内容填写引导字段
+};
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  renderCategoryGrid();
+});
+
+function renderCategoryGrid() {
+  const grid = document.getElementById('cat-grid');
+  
+  // 第一行：内文版式、练习册、封面
+  const row1 = CATEGORIES.slice(0, 3).map(cat => `
+    <a class="cat-card" onclick="openCat('${cat.id}')" role="button" tabindex="0">
+      <div class="cat-icon">${cat.icon}</div>
+      <div class="cat-name">${cat.name}<span class="cat-time">${cat.designDays}天</span></div>
+      <div class="cat-desc">${cat.desc}</div>
+      <div class="cat-arrow">→</div>
+    </a>
+  `).join('');
+
+  // 第二行：手卡、书盒
+  const row2 = CATEGORIES.slice(3, 5).map(cat => `
+    <a class="cat-card" onclick="openCat('${cat.id}')" role="button" tabindex="0">
+      <div class="cat-icon">${cat.icon}</div>
+      <div class="cat-name">${cat.name}<span class="cat-time">${cat.designDays}天</span></div>
+      <div class="cat-desc">${cat.desc}</div>
+      <div class="cat-arrow">→</div>
+    </a>
+  `).join('');
+
+  grid.innerHTML = `
+    <div class="cat-row cat-row-3">${row1}</div>
+    <div class="cat-row cat-row-2">${row2}</div>
+  `;
+}
+
+// ─── SPEC MODAL ────────────────────────────────────
+let pendingCatId = null;
+
+function closeSpecModal() {
+  document.getElementById('spec-modal').classList.remove('active');
+  document.body.style.overflow = '';
+  pendingCatId = null;
+}
+
+function confirmSpecAndOpen() {
+  document.getElementById('spec-modal').classList.remove('active');
+  if (pendingCatId) {
+    openCatDirect(pendingCatId);
+    pendingCatId = null;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  CATEGORY OPEN
+// ═══════════════════════════════════════════════════
+function openCat(id) {
+  if (['handy', 'workbook', 'handcard', 'cover', 'boxbook'].includes(id)) {
+    pendingCatId = id;
+    setSpecModalContent(id);
+    document.getElementById('spec-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+  openCatDirect(id);
+}
+
+function setSpecModalContent(catId) {
+  const body = document.getElementById('spec-modal-body');
+  if (catId === 'handy' || catId === 'workbook' || catId === 'handcard') {
+    body.innerHTML = `
+      <div class="spec-rule">
+        <span class="spec-rule-num">1</span>短期班仅可由 <strong>运营 / 商务运营</strong> 开启与确认终结。
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">2</span>单本书目标 <strong>150页</strong> 左右，允许有 ±20% 的浮动（即120-180页）。
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">3</span>新书单本需预留<strong>至少36个工作日</strong>，单纯审校时间不得少于19个工作日
+        <div class="spec-flow">
+          <div class="spec-flow-step">模版设计5d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>初排5d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>一审5d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>一改4d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>二审4d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>二改3d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>三审3d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>三改2d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>打印样书3d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>样书审核+修改+提交印刷2d</div>
+        </div>
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">4</span>书籍页数尽量是 <strong>8的整倍数</strong>
+      </div>
+    `;
+  } else if (catId === 'cover') {
+    body.innerHTML = `
+      <div class="spec-rule">
+        <span class="spec-rule-num">1</span>短期班仅可由 <strong>运营 / 商务运营</strong> 开启与确认终结。
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">2</span>新封面设计如印刷则需预留<strong>至少12个工作日</strong>，电子版无需印刷则不用考虑打印时间。
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">3</span>【封面设计生产具体排期】
+        <div class="spec-flow">
+          <div class="spec-flow-step">大方向2d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>初稿3d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>修改2d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>打印样书3d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>样书审核+修改+提交印刷2d</div>
+        </div>
+      </div>
+    `;
+  } else if (catId === 'boxbook') {
+    body.innerHTML = `
+      <div class="spec-rule">
+        <span class="spec-rule-num">1</span>短期班仅可由 <strong>运营 / 商务运营</strong> 开启与确认终结。
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">2</span>单本书目标 <strong>150页</strong> 左右，允许有 ±20% 的浮动（即120-180页）。
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">3</span>新盒需预留<strong>至少25个工作日</strong>
+      </div>
+      <div class="spec-rule">
+        <span class="spec-rule-num">4</span>【书盒生产具体排期】
+        <div class="spec-flow">
+          <div class="spec-flow-step">初稿设计5d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>打样确认5d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>样品审核+修改+提交印刷2d</div>
+          <div class="spec-flow-step"><span class="spec-flow-arrow">➜</span>印刷15d</div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function openCatDirect(id) {
+  console.log('openCat called with id:', id);
+  const cat = CATEGORIES.find(c => c.id === id);
+  console.log('found cat:', cat);
+  if (!cat) return;
+  state.currentCat = cat;
+  // 设置花瓣网搜索关键词
+  const huabanBtn = document.getElementById('huaban-btn');
+  if (huabanBtn) huabanBtn.dataset.kw = cat.pinterestKw || '';
+  state.selectedSize = null;
+  state.selectedDate = null;
+  state.refImages = [];
+  state.printType = null;
+
+  document.getElementById('modal-cat-name').textContent = cat.icon + ' ' + cat.name;
+  document.getElementById('modal-cat-desc').textContent = cat.desc;
+  document.getElementById('project-name').value = '';
+  document.getElementById('project-notes').value = '';
+  document.getElementById('project-start-date').value = '';
+  document.getElementById('project-owner').value = '';
+  document.getElementById('project-ops').value = '';
+  document.getElementById('project-dev').value = '';
+  document.getElementById('ref-url-input').value = '';
+  document.getElementById('custom-w').value = '';
+  document.getElementById('custom-h').value = '';
+  document.getElementById('ref-links-list').innerHTML = '';
+  document.getElementById('img-preview-grid').innerHTML = '';
+  initUploadZone();
+  state.contentGuide = {};
+  renderContentGuide(cat);
+  document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+  document.getElementById('schedule-result').style.display = 'none';
+  document.getElementById('footer-info').textContent = '请填写项目名称并选择尺寸规格';
+
+  const printTypeIds = ['handy', 'cover', 'workbook', 'handcard'];
+  const printTypeSection = document.getElementById('print-type-section');
+  if (printTypeIds.includes(cat.id)) {
+    printTypeSection.style.display = 'block';
+    document.querySelectorAll('.print-type-option').forEach(el => el.classList.remove('selected'));
+  } else {
+    printTypeSection.style.display = 'none';
+  }
+
+  renderSizeGrid(cat);
+  renderCalendar();
+  renderWorkflow(cat);
+
+  document.getElementById('modal-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function selectPrintType(type) {
+  state.printType = type;
+  document.querySelectorAll('.print-type-option').forEach(el => {
+    el.classList.remove('selected');
+  });
+  document.getElementById('print-type-' + type).classList.add('selected');
+  renderWorkflow(state.currentCat);
+  checkSchedule();
+  updateFooterInfo();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function goHome() {
+  closeModal();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToCategories() {
+  document.getElementById('categories').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ═══════════════════════════════════════════════════
+//  SIZE GRID
+// ═══════════════════════════════════════════════════
+function renderSizeGrid(cat) {
+  const grid = document.getElementById('size-grid');
+  grid.innerHTML = cat.sizes.map((s, i) => {
+    const scaleFactor = 1.6;
+    const w = Math.round(s.w * scaleFactor * 0.5);
+    const h = Math.round(s.h * scaleFactor * 0.5);
+    return `
+      <div class="size-card" id="size-${i}" onclick="selectSize(${i})">
+        <div class="size-visual">
+          <div class="size-rect" style="width:${w}px;height:${h}px;"></div>
+        </div>
+        <div class="size-name">${s.name}</div>
+        <div class="size-dim">${s.dim}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectSize(idx) {
+  state.selectedSize = state.currentCat.sizes[idx];
+  // 清除自定义尺寸输入
+  document.getElementById('custom-w').value = '';
+  document.getElementById('custom-h').value = '';
+  document.querySelectorAll('.size-card').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+  checkSchedule();
+  updateFooterInfo();
+}
+
+function applyCustomSize() {
+  const wInput = document.getElementById('custom-w');
+  const hInput = document.getElementById('custom-h');
+  const w = parseInt(wInput.value, 10);
+  const h = parseInt(hInput.value, 10);
+
+  if (!w || !h || w <= 0 || h <= 0) {
+    showToast('error', '请输入有效的宽度和高度（正整数）');
+    return;
+  }
+
+  // 清除预设尺寸选择
+  document.querySelectorAll('.size-card').forEach(el => el.classList.remove('selected'));
+
+  // 根据面积估算设计时间：基准 A4 (210*297≈62370) 5天，面积越大时间越长
+  const area = w * h;
+  const baseArea = 210 * 297; // A4
+  const baseDays = 5;
+  const estimatedDays = Math.max(3, Math.round(baseDays * Math.sqrt(area / baseArea)));
+
+  state.selectedSize = {
+    name: '自定义尺寸',
+    dim: `${w}×${h}mm`,
+    w: Math.round(w / 10), // 用于可视化比例
+    h: Math.round(h / 10),
+    time: `${estimatedDays} 工作日`,
+    isCustom: true,
+    customW: w,
+    customH: h
+  };
+
+  showToast('success', `已设置自定义尺寸：${w}×${h}mm，预估工期 ${estimatedDays} 天`);
+  checkSchedule();
+  updateFooterInfo();
+}
+
+// ═══════════════════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════════════════
+
+// 按工作日数向后推进，返回目标日期（跳过周六/日）
+function addWorkDays(startDate, workDays) {
+  const d = new Date(startDate);
+  let remaining = workDays;
+  while (remaining > 0) {
+    d.setDate(d.getDate() + 1);
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) remaining--;
+  }
+  return d;
+}
+
+// 按工作日数向前倒退，返回目标日期（跳过周六/日）
+function subtractWorkDays(endDate, workDays) {
+  const d = new Date(endDate);
+  let remaining = workDays;
+  while (remaining > 0) {
+    d.setDate(d.getDate() - 1);
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) remaining--;
+  }
+  return d;
+}
+
+// 计算每个阶段的 [startDate, endDate]（若有 workflow 且已选使用日期）
+// 使用日期是终点，往前倒推每个阶段
+function calcPhaseRanges() {
+  const cat = state.currentCat;
+  if (!cat || !cat.workflow || cat.workflow.length === 0) return null;
+  if (!state.selectedDate) return null;
+
+  // 动态 workflow：印刷版时追加印刷步骤；电子版时只取前8步（到三改）
+  const isHandyOrCover = ['handy', 'cover', 'workbook', 'handcard'].includes(cat.id);
+  let workflow = [...cat.workflow];
+  if (isHandyOrCover) {
+    if (state.printType === 'digital') {
+      // 电子版：只取前8步（模版设计到三改）
+      workflow = workflow.slice(0, 8);
+    } else {
+      // 印刷版：追加印刷步骤
+      workflow.push({ label: '印刷', days: 15 });
+    }
+  }
+
+  const { y, m, d } = state.selectedDate;
+  const ranges = [];
+  // 从使用日期往前倒推
+  let cursor = new Date(y, m, d);
+
+  // 倒序遍历 workflow，从后往前算
+  const reversedWorkflow = workflow.reverse();
+  for (const step of reversedWorkflow) {
+    const phaseEnd = new Date(cursor);
+    const phaseStart = subtractWorkDays(cursor, step.days - 1);
+    ranges.unshift({ start: phaseStart, end: phaseEnd });
+    // 下一个阶段的结束日期 = 当前阶段的开始日期前一天（断开一天）
+    cursor = new Date(phaseStart);
+    cursor.setDate(cursor.getDate() - 1);
+    // 跳过周末
+    while (cursor.getDay() === 0 || cursor.getDay() === 6) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+  }
+  return ranges;
+}
+
+function renderCalendar() {
+  const { calYear: y, calMonth: m } = state;
+  const months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  document.getElementById('cal-month-title').textContent = `${y}年${months[m]}`;
+
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const today = new Date();
+  const todayY = today.getFullYear(), todayM = today.getMonth(), todayD = today.getDate();
+
+  const phaseRanges = calcPhaseRanges();
+  const cat = state.currentCat;
+
+  // 动态 workflow（与 calcPhaseRanges 保持一致）
+  const isHandyOrCoverCal = cat && ['handy', 'cover', 'workbook', 'handcard'].includes(cat.id);
+  let calWorkflow = [...(cat ? cat.workflow : [])];
+  if (isHandyOrCoverCal) {
+    if (state.printType === 'digital') {
+      calWorkflow = calWorkflow.slice(0, 8);
+    } else {
+      calWorkflow.push({ label: '印刷', days: 15 });
+    }
+  }
+
+  // 按周渲染日历
+  let html = '';
+  let currentDay = 1 - firstDay; // 从上月剩余天数开始计数
+  let weekIndex = 0;
+
+  while (currentDay <= daysInMonth) {
+    // 收集本周的日期信息
+    const weekDays = [];
+    for (let col = 0; col < 7; col++) {
+      const dayNum = currentDay + col;
+      const date = new Date(y, m, dayNum);
+      const isCurrentMonth = dayNum >= 1 && dayNum <= daysInMonth;
+      const isPast = isCurrentMonth && date < new Date(todayY, todayM, todayD);
+      const isToday = isCurrentMonth && y === todayY && m === todayM && dayNum === todayD;
+      const isSelected = isCurrentMonth && state.selectedDate &&
+        state.selectedDate.y === y && state.selectedDate.m === m && state.selectedDate.d === dayNum;
+      const dayOfWeek = col;
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      weekDays.push({
+        dayNum,
+        date,
+        isCurrentMonth,
+        isPast,
+        isToday,
+        isSelected,
+        isWeekend,
+        col
+      });
+    }
+
+    html += '<div class="week-row">';
+
+    // 先渲染日期格子（不含色块）
+    for (const day of weekDays) {
+      let cls = 'day-cell';
+      if (!day.isCurrentMonth) cls += ' empty';
+      if (day.isPast) cls += ' past';
+      if (day.isToday) cls += ' today';
+      if (day.isSelected) cls += ' selected';
+      if (day.isWeekend) cls += ' weekend';
+
+      const clickable = !day.isCurrentMonth || day.isPast ? '' : `onclick="selectDate(${y},${m},${day.dayNum})"`;
+
+      html += `<div class="${cls}" ${clickable}>`;
+      if (day.isCurrentMonth) {
+        html += `<div class="day-number">${day.dayNum}</div>`;
+      }
+      html += `</div>`;
+    }
+
+    // 渲染阶段色带层（绝对定位）
+    if (phaseRanges && calWorkflow.length > 0) {
+      html += '<div class="phase-strips-container">';
+
+      // 计算每个阶段在这一周的位置
+      for (let pi = 0; pi < phaseRanges.length; pi++) {
+        const { start, end } = phaseRanges[pi];
+        const startTs = start.getTime();
+        const endTs = end.getTime();
+
+        // 找出这一周中属于该阶段的起始和结束列
+        let startCol = -1;
+        let endCol = -1;
+
+        for (let col = 0; col < 7; col++) {
+          const day = weekDays[col];
+          if (!day.isCurrentMonth || day.isWeekend) continue;
+          const ts = day.date.getTime();
+          if (ts >= startTs && ts <= endTs) {
+            if (startCol === -1) startCol = col;
+            endCol = col;
+          }
+        }
+
+        // 如果这一周包含该阶段，渲染色带
+        if (startCol !== -1) {
+          const colWidth = 100 / 7;
+          const left = startCol * colWidth;
+          const width = (endCol - startCol + 1) * colWidth;
+          // 检查是否是阶段的开始（这一周包含阶段的开始日期）
+          const isPhaseStart = weekDays.some(d =>
+            d.isCurrentMonth && !d.isWeekend && d.date.getTime() === startTs
+          );
+          const label = isPhaseStart ? calWorkflow[pi].label : '';
+
+          // 每个色带两侧都留出5px间隙，让不同颜色之间断开
+          const stripLeft = `calc(${left}% + 5px)`;
+          const stripWidth = `calc(${width}% - 10px)`;
+          html += `<div class="phase-strip phase-${pi}" style="left: ${stripLeft}; width: ${stripWidth};">${label}</div>`;
+        }
+      }
+
+      html += '</div>';
+    }
+
+    html += '</div>';
+
+    currentDay += 7;
+    weekIndex++;
+  }
+
+  document.getElementById('cal-days').innerHTML = html;
+
+  // 图例：有 workflow + 已选日期才显示
+  renderCalendarLegend(phaseRanges);
+}
+
+function calPrev() {
+  if (state.calMonth === 0) { state.calMonth = 11; state.calYear--; }
+  else state.calMonth--;
+  renderCalendar();
+}
+
+function calNext() {
+  if (state.calMonth === 11) { state.calMonth = 0; state.calYear++; }
+  else state.calMonth++;
+  renderCalendar();
+}
+
+function selectDate(y, m, d) {
+  state.selectedDate = { y, m, d };
+  renderCalendar();
+  checkSchedule();
+  updateFooterInfo();
+}
+
+function checkSchedule() {
+  const el = document.getElementById('schedule-result');
+  if (!state.selectedDate || !state.selectedSize) { el.style.display = 'none'; return; }
+
+  const { y, m, d } = state.selectedDate;
+  const useDate = new Date(y, m, d);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const diffMs = useDate - today;
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  // 设计工期（从品类中取工作日数）
+  const cat = state.currentCat;
+  const designWorkDays = cat ? cat.designDays : 5;
+  // 封面设计和内文版式设计不含印刷时间，其他品类包含印刷交付时间（+7天）
+  const hasPrintTime = cat && cat.id !== 'cover' && cat.id !== 'interior';
+  const printDays = hasPrintTime ? 7 : 0;
+  // 工作日转日历天（×1.4）+ 印刷交付时间（如有）
+  const requiredDays = Math.ceil(designWorkDays * 1.4) + printDays;
+  const printText = hasPrintTime ? '（含设计+印刷）' : '（仅设计）';
+
+  el.style.display = 'block';
+
+  if (diffDays <= 0) {
+    el.className = 'schedule-result danger';
+    el.textContent = `⛔ 该日期已过，请重新选择`;
+  } else if (diffDays < requiredDays) {
+    el.className = 'schedule-result danger';
+    el.textContent = `🚨 排期太紧！该品类需要约 ${requiredDays} 天${printText}，距使用日期仅剩 ${diffDays} 天，建议立即沟通或提前确认方案`;
+  } else if (diffDays < requiredDays + 7) {
+    el.className = 'schedule-result tight';
+    el.textContent = `⚠️ 排期略紧，建议尽快确认需求。该品类预计需要 ${requiredDays} 天${printText}，距使用日期剩余 ${diffDays} 天，基本可行但余量不足`;
+  } else {
+    el.className = 'schedule-result ok';
+    el.textContent = `✅ 排期合理！距使用日期还有 ${diffDays} 天，充足完成该品类设计${printText}（约需 ${requiredDays} 天）`;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  REFERENCE IMAGE UPLOAD & PREVIEW
+// ═══════════════════════════════════════════════════
+//  WORKFLOW TIMELINE
+// ═══════════════════════════════════════════════════
+
+// 11个阶段的颜色（与 CSS 对应）
+const PHASE_COLORS = ['#fb923c','#f43f5e','#c084fc','#60a5fa','#2dd4bf','#a3e635','#facc15','#a16207','#ec4899','#14b8a6','#6366f1'];
+
+function renderWorkflow(cat) {
+  const section = document.getElementById('workflow-section');
+  const timeline = document.getElementById('workflow-timeline');
+  const total = document.getElementById('workflow-total');
+
+  if (!cat.workflow || cat.workflow.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+
+  // 复制 workflow 并在印刷版时追加印刷步骤；电子版时只取前8步
+  const isHandyOrCover = ['handy', 'cover', 'workbook', 'handcard'].includes(cat.id);
+  let workflow = [...cat.workflow];
+  if (isHandyOrCover) {
+    if (state.printType === 'digital') {
+      workflow = workflow.slice(0, 8);
+    } else {
+      workflow.push({ label: '印刷', days: 15 });
+    }
+  }
+
+  const totalDays = workflow.reduce((sum, s) => sum + s.days, 0);
+
+  timeline.innerHTML = workflow.map((step, i) => `
+    <div class="workflow-step" data-phase="${i}">
+      <div class="workflow-step-dot">${i + 1}</div>
+      <div class="workflow-step-label">${step.label}</div>
+      <div class="workflow-step-days">${step.days}天</div>
+    </div>
+    ${i < workflow.length - 1 ? '<div class="workflow-connector"><div class="workflow-connector-line"></div></div>' : ''}
+  `).join('');
+
+  total.innerHTML = `⏱ 全流程合计 <strong>${totalDays} 个工作日</strong>，从发稿当天起算，含排版到终校全流程`;
+}
+
+function renderCalendarLegend(phaseRanges) {
+  const el = document.getElementById('workflow-legend');
+  if (!el) return;
+
+  const cat = state.currentCat;
+  if (!phaseRanges || !cat || !cat.workflow) {
+    el.style.display = 'none';
+    return;
+  }
+
+  // 动态 workflow（与 calcPhaseRanges 保持一致）
+  const isHandyOrCover = ['handy', 'cover', 'workbook', 'handcard'].includes(cat.id);
+  let workflow = [...cat.workflow];
+  if (isHandyOrCover) {
+    if (state.printType === 'digital') {
+      workflow = workflow.slice(0, 8);
+    } else {
+      workflow.push({ label: '印刷', days: 15 });
+    }
+  }
+
+  const fmt = (date) => {
+    const mo = date.getMonth() + 1;
+    const da = date.getDate();
+    return `${mo}/${da}`;
+  };
+
+  el.style.display = 'flex';
+  el.innerHTML = workflow.map((step, i) => {
+    const { start, end } = phaseRanges[i];
+    const color = PHASE_COLORS[i];
+    return `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${color};"></div>
+        <span style="color:${color};font-weight:600;">${step.label}</span>
+        <span>${fmt(start)} → ${fmt(end)}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  REFERENCE IMAGE UPLOAD & PREVIEW
+// ═══════════════════════════════════════════════════
+function initUploadZone() {
+  const dropzoneBox = document.getElementById('dropzone-box');
+  const fileInput = document.getElementById('file-input');
+  if (!dropzoneBox || !fileInput) return;
+
+  dropzoneBox.addEventListener('click', () => fileInput.click());
+
+  dropzoneBox.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzoneBox.classList.add('drag-over');
+  });
+  dropzoneBox.addEventListener('dragleave', () => {
+    dropzoneBox.classList.remove('drag-over');
+  });
+  dropzoneBox.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzoneBox.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) {
+      handleFiles(fileInput.files);
+      fileInput.value = '';
+    }
+  });
+}
+
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) {
+      showToast('error', `${file.name} 不是图片文件`);
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('error', `${file.name} 超过 10MB 限制`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      const imgName = file.name.length > 20 ? file.name.slice(0, 17) + '...' : file.name;
+      state.refImages.push({ type: 'file', src: dataUrl, label: imgName, name: file.name });
+      renderImagePreviews();
+      renderRefLinks();
+      updateFooterInfo();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeUploadedImage(idx) {
+  state.refImages.splice(idx, 1);
+  renderImagePreviews();
+  renderRefLinks();
+  updateFooterInfo();
+}
+
+function renderImagePreviews() {
+  const grid = document.getElementById('img-preview-grid');
+  if (!grid) return;
+  const files = state.refImages.filter(img => img.type === 'file');
+  if (files.length === 0) {
+    grid.innerHTML = '<div class="img-preview-empty">暂无已上传图片</div>';
+    return;
+  }
+  let html = '';
+  // re-index files within full refImages array
+  state.refImages.forEach((img, i) => {
+    if (img.type !== 'file') return;
+    html += `
+    <div class="img-preview-item">
+      <img src="${img.src}" alt="${img.label}" title="${img.name || img.label}" />
+      <button class="remove-img" onclick="removeUploadedImage(${i})" title="删除">✕</button>
+    </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════
+//  HUABAN
+// ═══════════════════════════════════════════════════
+function openHuaban() {
+  const kw = document.getElementById('huaban-btn')?.dataset?.kw || '';
+  const url = `https://huaban.com/search?q=${encodeURIComponent(kw)}`;
+  if (window.electronAPI && window.electronAPI.openExternal) {
+    window.electronAPI.openExternal(url);
+  } else {
+    window.open(url, '_blank');
+  }
+  showToast('info', `已用浏览器打开花瓣网，搜索关键词：${kw}`);
+}
+
+// ═══════════════════════════════════════════════════
+//  CONTENT GUIDE
+// ═══════════════════════════════════════════════════
+function renderContentGuide(cat) {
+  const left = document.getElementById('cg-left');
+  const mockup = document.getElementById('cg-mockup');
+  const cfg = CONTENT_GUIDE_CFG[cat.id];
+  if (!cfg) {
+    document.getElementById('content-guide-section').style.display = 'none';
+    return;
+  }
+  document.getElementById('content-guide-section').style.display = 'block';
+
+  // 渲染左侧字段
+  left.innerHTML = `
+    <div class="cg-left-title">${cfg.title}</div>
+    ${cfg.fields.map(f => `
+      <div class="cg-field">
+        <div class="cg-label">${f.label}${f.required ? ' <span style="color:var(--primary)">*</span>' : ''}</div>
+        <input class="cg-input" type="text" id="cg-${f.id}" placeholder="${f.placeholder || ''}"
+          value="${state.contentGuide[f.id] || ''}"
+          oninput="onCgInput('${f.id}', this.value, '${cat.id}')" />
+      </div>
+    `).join('')}
+  `;
+
+  // 渲染右侧mockup
+  renderCgMockup(cat.id);
+}
+
+function onCgInput(fieldId, value, catId) {
+  state.contentGuide[fieldId] = value;
+  renderCgMockup(catId);
+}
+
+function cgVal(id) { return state.contentGuide[id] || ''; }
+
+function renderCgMockup(catId) {
+  const el = document.getElementById('cg-mockup');
+  if (catId === 'cover') {
+    el.innerHTML = `
+      <div class="mcg-cover-wrap">
+        <div class="mcg-cover-layout">
+          <div class="mcg-spine">${cgVal('series') || '系列名'}</div>
+          <div class="mcg-cover">
+            <div class="mcg-series">${cgVal('series') || '系列名'}</div>
+            <div class="mcg-title">${cgVal('title') || '主标题'}</div>
+            <div class="mcg-subtitle">${cgVal('subtitle') || '副标题'}</div>
+            <div class="mcg-selling">${cgVal('selling') || '卖点文案'}</div>
+            <div class="mcg-teacher-label">${cgVal('teacher') || '老师信息'}</div>
+          </div>
+        </div>
+      </div>`;
+  } else if (catId === 'boxbook') {
+    el.innerHTML = `
+      <div class="mcg-box-wrap">
+        <div class="mcg-box-main">
+          <div class="mcg-box-selling">${cgVal('selling') || '卖点'}</div>
+          <div class="mcg-box-title">${cgVal('name') || '产品名称'}</div>
+          <div class="mcg-box-pack">${cgVal('packDesc') || '套装内容'}</div>
+          <div class="mcg-box-teacher-label">${cgVal('teacher') || '老师信息'}</div>
+          <div class="mcg-box-target">适用：${cgVal('target') || '目标用户'}</div>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+const CONTENT_GUIDE_CFG = {
+  cover: {
+    title: '📖 填写封面信息',
+    fields: [
+      { id: 'title', label: '主标题', placeholder: '如：小学数学知识大全', required: true },
+      { id: 'subtitle', label: '副标题', placeholder: '如：同步教材·重点难点全解' },
+      { id: 'selling', label: '卖点', placeholder: '如：全国通用版·名校名师推荐' },
+      { id: 'series', label: '系列名', placeholder: '如：新课程标准辅导丛书' },
+      { id: 'teacher', label: '老师信息', placeholder: '如：张老师 编' },
+    ]
+  },
+  boxbook: {
+    title: '📦 填写礼盒信息',
+    fields: [
+      { id: 'name', label: '产品名称', placeholder: '如：新学期大礼包', required: true },
+      { id: 'selling', label: '卖点', placeholder: '如：一站式学习方案·涵盖全科' },
+      { id: 'packDesc', label: '套装包含内容', placeholder: '如：讲义 + 练习册 + 单词卡' },
+      { id: 'teacher', label: '老师信息', placeholder: '如：张老师 编' },
+      { id: 'target', label: '目标用户', placeholder: '如：小学一年级新生' },
+    ]
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  REFERENCE LINKS
+// ═══════════════════════════════════════════════════
+function addRefUrl() {
+  const input = document.getElementById('ref-url-input');
+  const url = input.value.trim();
+  if (!url) { showToast('error', '请先输入图片链接'); return; }
+  if (!url.startsWith('http')) { showToast('error', '请输入完整的 http/https 链接'); return; }
+  state.refImages.push({ type: 'url', src: url, originalSrc: url, label: url });
+  input.value = '';
+  renderRefLinks();
+  showToast('success', '参考图链接已添加');
+}
+
+// 生成简短域名显示
+function shortDomain(url) {
+  try { return new URL(url).hostname.replace('www.', ''); } catch(e) { return '链接'; }
+}
+
+function renderRefLinks() {
+  const list = document.getElementById('ref-links-list');
+  if (state.refImages.length === 0) { list.innerHTML = ''; return; }
+  list.innerHTML = state.refImages.map((img, i) => {
+    const isUrl = img.type === 'url';
+    const url = isUrl ? (img.originalSrc || img.label) : img.src;
+    const label = isUrl ? shortDomain(url) : (img.label || '本地图片');
+    const icon = isUrl ? '🔗' : '📁';
+    return `
+    <div class="ref-link-item">
+      <div class="ref-link-icon">${icon}</div>
+      <div class="ref-link-info">
+        <div class="ref-link-url" title="${url}">${url}</div>
+        <div class="ref-link-meta">${isUrl ? '外部链接' : '本地文件'} · 点击可复制</div>
+      </div>
+      <button class="ref-link-remove" onclick="removeRefLink(${i})" title="删除">✕</button>
+    </div>`;
+  }).join('');
+  updateFooterInfo();
+}
+
+function removeRefLink(idx) {
+  state.refImages.splice(idx, 1);
+  renderRefLinks();
+}
+
+// ═══════════════════════════════════════════════════
+//  PROJECT INFO OPTIONS
+// ═══════════════════════════════════════════════════
+function selectOption(el) {
+  const field = el.dataset.field;
+  const value = el.dataset.value;
+  document.querySelectorAll(`.option-btn[data-field="${field}"]`).forEach(btn => {
+    btn.classList.remove('selected');
+  });
+  el.classList.add('selected');
+}
+
+// ═══════════════════════════════════════════════════
+//  FOOTER INFO
+// ═══════════════════════════════════════════════════
+function updateFooterInfo() {
+  const name = document.getElementById('project-name').value.trim();
+  const owner = document.getElementById('project-owner').value.trim();
+  const parts = [];
+  if (!name) parts.push('项目名称');
+  if (!owner) parts.push('项目负责人');
+
+  // 内文版式设计和封面设计需要选择版本类型
+  const cat = state.currentCat;
+  if (cat && ['handy', 'cover', 'workbook', 'handcard'].includes(cat.id) && !state.printType) {
+    parts.push('版本类型');
+  }
+
+  if (!state.selectedSize) parts.push('尺寸规格');
+  if (!state.selectedDate) parts.push('使用时间');
+
+  const el = document.getElementById('footer-info');
+  if (parts.length > 0) {
+    el.textContent = `还需填写：${parts.join('、')}`;
+  } else {
+    el.textContent = `✅ 信息完整，可导出需求单 ${state.refImages.length > 0 ? `（含 ${state.refImages.length} 张参考图）` : ''}`;
+  }
+}
+
+document.addEventListener('input', e => {
+  if (['project-name', 'project-owner'].includes(e.target.id)) updateFooterInfo();
+});
+
+// ═══════════════════════════════════════════════════
+//  PDF EXPORT
+// ═══════════════════════════════════════════════════
+async function exportPDF() {
+  const name = document.getElementById('project-name').value.trim();
+  if (!name) { showToast('error', '请先填写项目名称'); return; }
+
+  const owner = document.getElementById('project-owner').value.trim();
+  if (!owner) { showToast('error', '请先填写项目负责人'); return; }
+
+  const cat = state.currentCat;
+  if (cat && ['handy', 'cover', 'workbook', 'handcard'].includes(cat.id) && !state.printType) {
+    showToast('error', '请先选择版本类型（印刷版/电子版）');
+    return;
+  }
+
+  if (!state.selectedSize) { showToast('error', '请先选择尺寸规格'); return; }
+
+  showToast('info', '正在生成 PDF，请稍候…');
+
+  // 获取新字段值
+  const startDate = document.getElementById('project-start-date').value;
+  const ops = document.getElementById('project-ops').value.trim();
+  const dev = document.getElementById('project-dev').value.trim();
+  const bookTypeEl = document.querySelector('.option-btn[data-field="book-type"].selected');
+  const bookAttrEl = document.querySelector('.option-btn[data-field="book-attr"].selected');
+  const bookType = bookTypeEl ? bookTypeEl.dataset.value : '';
+  const bookAttr = bookAttrEl ? bookAttrEl.dataset.value : '';
+
+  const size = state.selectedSize;
+  const notes = document.getElementById('project-notes').value.trim();
+  const dateStr = state.selectedDate
+    ? `${state.selectedDate.y}年${state.selectedDate.m + 1}月${state.selectedDate.d}日`
+    : '未指定';
+
+  // 构建 PDF DOM
+  const container = document.getElementById('pdf-canvas');
+  const months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+
+  // ── 构建单个月份日历 ─────────────────────────────────────
+  // 策略：每行用 position:absolute 色带叠加在格子之上，形成真正合并的色块
+  function buildOneMonth(y, m, phaseRanges, workflow, deadlineKey, todayKey) {
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    const firstDay = new Date(y, m, 1);
+    const lastDay = new Date(y, m + 1, 0);
+
+    // 周日=0，与表单一致
+    let startWeekday = firstDay.getDay();
+
+    let weekdayRow = `<div class="pdf-weekday-row">
+      ${weekdays.map(w => `<div class="pdf-cal-weekday">${w}</div>`).join('')}
+    </div>`;
+
+    let rowsHtml = '';
+    let currentDay = 1 - startWeekday;
+    const totalCells = startWeekday + lastDay.getDate();
+    const rows = Math.ceil(totalCells / 7);
+
+    for (let r = 0; r < rows; r++) {
+      const weekDays = [];
+      for (let col = 0; col < 7; col++) {
+        const dayNum = currentDay + col;
+        const date = new Date(y, m, dayNum);
+        const isCurrentMonth = dayNum >= 1 && dayNum <= lastDay.getDate();
+        const isToday = isCurrentMonth && todayKey === `${y}-${m}-${dayNum}`;
+        const isSelected = isCurrentMonth && deadlineKey === `${y}-${m}-${dayNum}`;
+        const isWeekend = col === 0 || col === 6;
+        weekDays.push({ dayNum, date, isCurrentMonth, isToday, isSelected, isWeekend, col });
+      }
+
+      // 判断格子属于哪个阶段（周末不填色，与表单保持一致）
+      function getPhaseIdx(day) {
+        if (!day.isCurrentMonth || day.isWeekend) return null;
+        const ts = day.date.getTime();
+        for (let pi = 0; pi < phaseRanges.length; pi++) {
+          const { start, end } = phaseRanges[pi];
+          if (ts >= start.getTime() && ts <= end.getTime()) return pi;
+        }
+        return null;
+      }
+
+      // 阶段颜色表（与图例一致）
+      const PHASE_COLORS = [
+        'rgba(251,146,60,0.30)',
+        'rgba(244,63,94,0.30)',
+        'rgba(168,85,247,0.30)',
+        'rgba(59,130,246,0.30)',
+        'rgba(20,184,166,0.30)',
+        'rgba(132,204,22,0.30)',
+        'rgba(250,204,8,0.30)',
+        'rgba(161,98,7,0.30)',
+        'rgba(236,72,153,0.30)',
+        'rgba(20,184,166,0.30)',
+        'rgba(99,102,241,0.30)',
+      ];
+
+      // 收集本行各格子的阶段索引
+      const phaseIdxArr = weekDays.map(d => getPhaseIdx(d));
+
+      // 生成格子 HTML — 背景色 & 圆角全部用 inline style 直接写，html2canvas 100% 可靠
+      let weekCells = '';
+      for (let col = 0; col < 7; col++) {
+        const day = weekDays[col];
+        const phIdx = phaseIdxArr[col];
+        let cls = 'pdf-cal-day';
+        if (!day.isCurrentMonth) cls += ' empty';
+        if (day.isToday) cls += ' today';
+        if (day.isSelected) cls += ' selected';
+        if (day.isWeekend) cls += ' weekend';
+
+        // 计算 inline style
+        let inlineStyle = '';
+        if (phIdx !== null && !day.isSelected && day.isCurrentMonth) {
+          const bg = PHASE_COLORS[phIdx] || 'rgba(200,200,200,0.25)';
+          const prevPhIdx = (col > 0) ? phaseIdxArr[col - 1] : null;
+          const nextPhIdx = (col < 6) ? phaseIdxArr[col + 1] : null;
+          const isStart = prevPhIdx !== phIdx;
+          const isEnd   = nextPhIdx !== phIdx;
+          let borderRadius = '0';
+          if (isStart && isEnd) borderRadius = '6px';
+          else if (isStart)     borderRadius = '6px 0 0 6px';
+          else if (isEnd)       borderRadius = '0 6px 6px 0';
+          inlineStyle = `background:${bg};border-radius:${borderRadius};`;
+        }
+
+        weekCells += `<div class="${cls}"${inlineStyle ? ` style="${inlineStyle}"` : ''}>`;
+        if (day.isCurrentMonth) {
+          weekCells += `<div class="pdf-day-number">${day.dayNum}</div>`;
+          // 阶段首格（每行视角的首格）显示阶段标签
+          if (phIdx !== null && !day.isSelected) {
+            const prevPhIdx = (col > 0) ? phaseIdxArr[col - 1] : null;
+            const isStart = prevPhIdx !== phIdx;
+            if (isStart && workflow && workflow[phIdx]) {
+              weekCells += `<div class="pdf-phase-label">${workflow[phIdx].label}</div>`;
+            }
+          }
+        }
+        weekCells += '</div>';
+      }
+
+      rowsHtml += `<div class="pdf-week-row">${weekCells}</div>`;
+      currentDay += 7;
+    }
+
+    return `
+      <div class="pdf-month-wrapper">
+        <div class="pdf-month-header">${y}年${m + 1}月</div>
+        <div class="pdf-month-grid">
+          ${weekdayRow}
+          ${rowsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  // ── 构建日历（支持跨月显示） ─────────────────────────────
+  function buildCalendar(targetDate, workflow) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    const deadlineKey = `${targetDate.y}-${targetDate.m}-${targetDate.d}`;
+
+    // ── 计算每个阶段的 [start, end] 日期范围 ───────────────
+    const phaseRanges = [];
+    if (workflow && workflow.length > 0) {
+      const deadline = new Date(targetDate.y, targetDate.m, targetDate.d);
+      let cursor = new Date(deadline);
+      cursor.setDate(cursor.getDate() - 1);
+      const reversed = [...workflow].reverse();
+      for (const step of reversed) {
+        let remaining = step.days;
+        const phaseEnd = new Date(cursor);
+        while (remaining > 0) {
+          cursor.setDate(cursor.getDate() - 1);
+          const dow = cursor.getDay();
+          if (dow !== 0 && dow !== 6) remaining--;
+        }
+        const phaseStart = new Date(cursor);
+        phaseRanges.unshift({ start: phaseStart, end: phaseEnd });
+        cursor = new Date(phaseStart);
+        cursor.setDate(cursor.getDate() - 1);
+        while (cursor.getDay() === 0 || cursor.getDay() === 6) {
+          cursor.setDate(cursor.getDate() - 1);
+        }
+      }
+    }
+
+    // ── 收集所有需要显示的月份（从最早阶段月到 deadline 月） ──
+    const monthsToShow = [];
+    if (phaseRanges.length > 0) {
+      // earliest phase start month
+      let cur = new Date(phaseRanges[0].start.getFullYear(), phaseRanges[0].start.getMonth(), 1);
+      const end = new Date(targetDate.y, targetDate.m, 1);
+      while (cur <= end) {
+        monthsToShow.push({ y: cur.getFullYear(), m: cur.getMonth() });
+        cur.setMonth(cur.getMonth() + 1);
+      }
+    }
+
+    // ── 构建月份 HTML ───────────────────────────────────
+    const totalDays = phaseRanges.length > 0
+      ? phaseRanges.reduce((s, _, i) => s + (workflow[i] ? workflow[i].days : 0), 0)
+      : 0;
+
+    const legendItems = phaseRanges.map((pr, i) => {
+      const startFmt = `${pr.start.getMonth() + 1}/${pr.start.getDate()}`;
+      const endFmt = `${pr.end.getMonth() + 1}/${pr.end.getDate()}`;
+      const legendColors = ['#fb923c','#f43f5e','#c084fc','#60a5fa','#2dd4bf','#a3e635','#facc15','#a16207','#ec4899','#14b8a6','#6366f1'];
+      const color = legendColors[i] || '#888';
+      return `<div class="pdf-cal-legend-item">
+        <div class="pdf-cal-legend-dot" style="background:${color};border-radius:3px;"></div>
+        <span style="font-weight:600;color:${color};">${workflow[i] ? workflow[i].label : ''}</span>
+        <span style="color:#aaa;">${startFmt} → ${endFmt}</span>
+      </div>`;
+    }).join('');
+
+    const monthsHtml = monthsToShow
+      .map(m => buildOneMonth(m.y, m.m, phaseRanges, workflow, deadlineKey, todayKey))
+      .join('');
+
+    return `
+      <div class="pdf-calendar">
+        <div class="pdf-cal-header">
+          <span>📅 设计排期</span>
+          <span style="font-size:12px;opacity:0.8;">共 ${totalDays} 个工作日</span>
+        </div>
+        <div class="pdf-cal-grid">
+          ${monthsHtml}
+        </div>
+        ${legendItems ? `<div class="pdf-cal-legend">${legendItems}</div>` : ''}
+      </div>
+    `;
+  }
+
+  // ── 构建蓝色可点击链接 ───────────────────────────────
+  // 收集参考图信息
+  let refImgsHtml = '';
+  if (state.refImages.length > 0) {
+    const imgItems = state.refImages.map((img, i) => {
+      const isFile = img.type === 'file';
+      const imgSrc = isFile ? img.src : img.originalSrc || img.label;
+      const imgLabel = img.label && img.label.length > 30 ? img.label.slice(0, 27) + '...' : img.label;
+      
+      if (isFile) {
+        // 本地图片：显示缩略图（等比缩放，不拉伸）
+        return `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <div style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
+              <img src="${imgSrc}" style="max-width:200px;max-height:200px;object-fit:contain;" />
+            </div>
+            <span style="font-size:10px;color:#888;text-align:center;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${imgLabel || (i + 1)}</span>
+          </div>`;
+      } else {
+        // 链接：显示链接文字
+        return `
+          <div style="display:flex;align-items:flex-start;gap:6px;padding:8px;background:#f0f7ff;border-radius:6px;border:1px solid #c7dfff;flex:1;min-width:0;">
+            <span style="font-size:10px;color:#888;white-space:nowrap;padding-top:1px;">${i + 1}.</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:10px;color:#1a56db;font-weight:600;margin-bottom:2px;">👆 点击复制链接</div>
+              <div class="pdf-link" data-copy="${imgSrc}" style="color:#1a56db;font-size:10px;word-break:break-all;cursor:pointer;display:block;line-height:1.5;">${imgSrc}</div>
+            </div>
+          </div>`;
+      }
+    }).join('');
+    refImgsHtml = `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;margin-top:8px;">${imgItems}</div>`;
+  }
+
+  const scheduleText = document.getElementById('schedule-result').textContent || '未分析';
+
+  // 日历：使用动态 workflow（电子版只取前8步，印刷版含印刷步骤）
+  const isHandyOrCoverPdf = ['handy', 'cover', 'workbook', 'handcard'].includes(cat.id);
+  let pdfWorkflow = [...cat.workflow];
+  if (isHandyOrCoverPdf) {
+    if (state.printType === 'digital') {
+      pdfWorkflow = pdfWorkflow.slice(0, 8);
+    } else {
+      pdfWorkflow.push({ label: '印刷', days: 15 });
+    }
+  }
+
+  const calendarHtml = state.selectedDate
+    ? buildCalendar(state.selectedDate, pdfWorkflow)
+    : '<div style="font-size:13px;color:#aaa;">（请先选择使用时间，生成排期日历）</div>';
+
+  container.innerHTML = `
+    <div class="pdf-sheet" id="pdf-sheet-inner">
+      <div class="pdf-header-bar">
+        <h1>${name}</h1>
+        <p>由「印刷这块我都懂」生成 · ${new Date().toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'})}</p>
+      </div>
+      ${(startDate || ops || dev || bookType || bookAttr) ? `
+      <div class="pdf-section">
+        <div class="pdf-section-title">📋 项目信息</div>
+        ${startDate ? `<div class="pdf-value">📅 项目启动时间：${startDate}</div>` : ''}
+        <div class="pdf-value">👤 项目负责人：${owner}</div>
+        ${ops ? `<div class="pdf-value">🎯 运营对接人：${ops}</div>` : ''}
+        ${dev ? `<div class="pdf-value">📚 教研对接人：${dev}</div>` : ''}
+        ${bookType ? `<div class="pdf-value">📖 图书类型：${bookType === 'new' ? '新书首发' : '旧书更新迭代'}</div>` : ''}
+        ${bookAttr ? `<div class="pdf-value">🏷️ 图书属性：${bookAttr === 'self' ? '自营' : '出版'}</div>` : ''}
+      </div>` : `
+      <div class="pdf-section">
+        <div class="pdf-section-title">👤 项目负责人</div>
+        <div class="pdf-value">${owner}</div>
+      </div>`}
+      <div class="pdf-section">
+        <div class="pdf-section-title">设计品类</div>
+        <div class="pdf-value">${cat.icon} ${cat.name}</div>
+        <div style="font-size:13px;color:#888;margin-top:4px;">${cat.desc}</div>
+      </div>
+      ${CONTENT_GUIDE_CFG[cat.id] ? `
+      <div class="pdf-section">
+        <div class="pdf-section-title">${CONTENT_GUIDE_CFG[cat.id].title}</div>
+        ${CONTENT_GUIDE_CFG[cat.id].fields.map(f => {
+          const val = state.contentGuide[f.id] || '';
+          return val ? `<div class="pdf-value">${f.label}：${val}</div>` : '';
+        }).join('')}
+      </div>` : ''}
+      ${['handy', 'cover', 'workbook', 'handcard'].includes(cat.id) ? `
+      <div class="pdf-section">
+        <div class="pdf-section-title">版本类型</div>
+        <div class="pdf-value">${state.printType === 'print' ? '🖨️ 印刷版（含15天印刷交付）' : '💻 电子版（仅设计稿）'}</div>
+      </div>` : ''}
+      <div class="pdf-section">
+        <div class="pdf-section-title">尺寸规格</div>
+        <div class="pdf-value">${size.name} · ${size.dim}</div>
+        <div style="font-size:13px;color:#888;margin-top:4px;">预计设计周期：${size.time}</div>
+      </div>
+      <div class="pdf-section">
+        <div class="pdf-section-title">📅 排期日历</div>
+        <div class="pdf-value">${dateStr}</div>
+        ${state.selectedDate ? `<div style="font-size:13px;color:#555;margin-top:4px;">${scheduleText}</div>` : ''}
+        <div style="margin-top:10px;">${calendarHtml}</div>
+      </div>
+      ${refImgsHtml ? `
+      <div class="pdf-section">
+        <div class="pdf-section-title">🖼️ 参考图（共 ${state.refImages.length} 张）</div>
+        ${refImgsHtml}
+      </div>` : ''}
+      ${notes ? `
+      <div class="pdf-section">
+        <div class="pdf-section-title">需求备注</div>
+        <div style="font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;">${notes}</div>
+      </div>` : ''}
+      <div class="pdf-footer">
+        <span>印刷这块我都懂 · 教辅设计需求沟通平台</span>
+        <span>如有疑问请联系设计团队确认</span>
+      </div>
+    </div>
+  `;
+
+  try {
+    // ── Step 1：检查依赖库 ──
+    if (typeof window.jspdf === 'undefined') throw new Error('jspdf 未加载');
+    if (typeof html2canvas === 'undefined') throw new Error('html2canvas 未加载');
+
+    const { jsPDF } = window.jspdf;
+    const sheet = document.getElementById('pdf-sheet-inner');
+    if (!sheet) throw new Error('pdf-sheet-inner 不存在');
+
+    // 预加载所有图片，确保渲染前图片全部就绪
+    async function preloadImages() {
+      const imgs = sheet.querySelectorAll('img');
+      return Promise.all(Array.from(imgs).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve; // 图片失败不阻塞，继续渲染
+          img.src = img.src;
+        });
+      }));
+    }
+    await preloadImages();
+    await new Promise(r => setTimeout(r, 500));
+
+    // ── Step 2：html2canvas 渲染 ──
+    let canvas = await html2canvas(sheet, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      foreignObjectRendering: false,
+    });
+
+    // 尺寸校验
+    console.log('[PDF] canvas size:', canvas.width, 'x', canvas.height);
+    if (canvas.width < 100 || canvas.height < 100) {
+      throw new Error('html2canvas 渲染失败，请检查控制台错误');
+    }
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    console.log('[PDF] canvas size:', canvas.width, 'x', canvas.height);
+
+    // ── Step 3：生成 PDF（页面高度自适应内容，不分页切断） ──
+    const pdfWidth = 210;  // A4 宽度 mm
+    const pxToMm = pdfWidth / canvas.width;
+    const totalHeightMm = canvas.height * pxToMm;
+    console.log('[PDF] pdfWidth:', pdfWidth, 'totalHeightMm:', totalHeightMm);
+
+    // 直接用自定义尺寸创建页面，避免 jsPDF 默认空白页
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pdfWidth, totalHeightMm] });
+    // jsPDF 2.x 默认先创建一页 A4，删掉它，再手动加一页正确尺寸的
+    try { pdf.deletePage(1); } catch(e) {}
+    pdf.addPage([pdfWidth, totalHeightMm]);
+
+    // 绑定链接点击复制
+    async function addClickableLinks() {
+      const linkEls = sheet.querySelectorAll('[data-copy]');
+      linkEls.forEach(el => {
+        el.addEventListener('click', () => {
+          const url = el.dataset.copy;
+          navigator.clipboard.writeText(url).then(() => {
+            showToast('', '🔗 链接已复制');
+          }).catch(() => {
+            showToast('', '复制失败，请手动复制');
+          });
+        });
+      });
+    }
+    await addClickableLinks();
+
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, totalHeightMm);
+
+    const safeName = name.replace(/[^\w\u4e00-\u9fa5]/g, '_');
+    pdf.save(`设计需求单_${safeName}.pdf`);
+    container.innerHTML = '';
+    showToast('success', `PDF 已导出：设计需求单_${safeName}.pdf`);
+  } catch (err) {
+    container.innerHTML = '';
+    console.error('[PDF ERROR]', err);
+    showToast('error', `PDF 导出失败：${err.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════
+let toastTimer;
+function showToast(type, msg) {
+  const el = document.getElementById('toast');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  void el.offsetWidth;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+</script>
+</body>
+</html>
