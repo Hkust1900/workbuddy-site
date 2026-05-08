@@ -1976,6 +1976,161 @@
       text-align: center;
     }
 
+    /* ─── MATERIAL SECTION ────────────────────────────── */
+    .material-section {
+      margin: 28px 0;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    .material-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .material-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      position: relative;
+    }
+
+    .material-item-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .material-item-header .cg-label {
+      flex-shrink: 0;
+    }
+
+    .material-type-select {
+      flex: 1;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg2);
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .material-type-select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .material-remove-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 6px;
+      background: var(--bg3);
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .material-remove-btn:hover {
+      background: #ffebee;
+      color: #e53935;
+    }
+
+    .material-fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .material-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .btn-add-material {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+    }
+
+    .btn-add-material:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--accent-glow);
+    }
+
+    .material-maketype-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: var(--bg3);
+      border-radius: 8px;
+    }
+
+    .maketype-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .maketype-label input[type="radio"] {
+      accent-color: var(--primary);
+    }
+
+    .material-new-fields {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .material-group {
+      margin-bottom: 12px;
+    }
+
+    .material-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .material-group-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+      padding-left: 8px;
+      border-left: 3px solid var(--primary);
+    }
+
     .url-input-row {
       display: flex;
       gap: 12px;
@@ -2793,6 +2948,17 @@
         </div>
       </div>
 
+      <!-- 内含物料信息 -->
+      <div class="material-section" id="material-section" style="display:none;">
+        <div class="sub-title">📦 内含物料信息</div>
+        <div class="material-list" id="material-list">
+          <!-- JS 动态填充 -->
+        </div>
+        <button class="btn-add-material" onclick="addMaterial()">
+          <span>＋</span> 添加物料
+        </button>
+      </div>
+
       <!-- 备注描述 -->
       <div>
         <div class="field-label">📝 需求备注</div>
@@ -2974,6 +3140,7 @@ let state = {
   calMonth: 3, // 0-indexed (3 = April)
   printType: null, // 'print' | 'digital' — 仅内文版式设计和封面设计
   contentGuide: {}, // { fieldId: value } 内容填写引导字段
+  materials: [], // [{ type: 'book', name: '', quantity: 1, spec: '' }]
 };
 
 // ═══════════════════════════════════════════════════
@@ -3144,6 +3311,7 @@ function openCatDirect(id) {
   document.getElementById('img-preview-grid').innerHTML = '';
   initUploadZone();
   state.contentGuide = {};
+  state.materials = [];
   renderContentGuide(cat);
   document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
   document.getElementById('schedule-result').style.display = 'none';
@@ -3735,6 +3903,9 @@ function renderContentGuide(cat) {
 
   // 渲染右侧mockup
   renderCgMockup(cat.id);
+
+  // 书盒品类显示物料板块
+  renderMaterialSection(cat);
 }
 
 function onCgInput(fieldId, value, catId) {
@@ -3798,6 +3969,289 @@ const CONTENT_GUIDE_CFG = {
     ]
   }
 };
+
+// ═══════════════════════════════════════════════════
+//  MATERIAL SECTION
+// ═══════════════════════════════════════════════════
+const MATERIAL_TYPES = [
+  {
+    value: 'book', label: '书籍', icon: '📖',
+    fields: [
+      { id: 'title', label: '书名', placeholder: '如：小学数学同步练习' },
+      { id: 'bookFormat', label: '开本', placeholder: '如：16开' },
+      { id: 'pageCount', label: '页数', placeholder: '如：120' },
+    ],
+    newFields: [
+      { group: '封面信息', fields: [
+        { id: 'subtitle', label: '副标题', placeholder: '如：同步教材·重点难点全解' },
+        { id: 'selling', label: '卖点', placeholder: '如：全国通用版·名校名师推荐' },
+        { id: 'series', label: '系列名', placeholder: '如：新课程标准辅导丛书' },
+        { id: 'teacher', label: '老师信息', placeholder: '如：张老师 编' },
+      ]},
+      { group: '内文信息', fields: [
+        { id: 'hasManuscript', label: '是否有文稿', type: 'select', options: ['是', '否'] },
+        { id: 'manuscriptDate', label: '文稿交付时间', placeholder: '如：2026-06-01' },
+        { id: 'pages', label: '预估页数', placeholder: '如：120' },
+      ]},
+      { group: '尺寸信息', fields: [
+        { id: 'spec', label: '开本/装订', placeholder: '如：A4/胶装' },
+        { id: 'printSpec', label: '印刷工艺', placeholder: '如：彩色/双色/单色' },
+      ]},
+    ]
+  },
+  {
+    value: 'tool', label: '教具', icon: '🧩',
+    fields: [
+      { id: 'name', label: '名称', placeholder: '如：单词卡套装' },
+      { id: 'quantity', label: '数量', placeholder: '如：1' },
+    ],
+    newFields: [
+      { group: '基本信息', fields: [
+        { id: 'spec', label: '规格', placeholder: '如：64张/盒' },
+        { id: 'material', label: '材质', placeholder: '如：300g白卡+过膜' },
+        { id: 'process', label: '工艺', placeholder: '如：圆角/打孔/穿环' },
+      ]},
+      { group: '内容信息', fields: [
+        { id: 'hasContent', label: '是否有内容稿', type: 'select', options: ['是', '否'] },
+        { id: 'contentDate', label: '内容交付时间', placeholder: '如：2026-06-01' },
+      ]},
+    ]
+  },
+  {
+    value: 'map', label: '导图', icon: '🗺️',
+    fields: [
+      { id: 'name', label: '名称', placeholder: '如：知识导图挂图' },
+      { id: 'quantity', label: '数量', placeholder: '如：1' },
+    ],
+    newFields: [
+      { group: '基本信息', fields: [
+        { id: 'spec', label: '尺寸', placeholder: '如：A2/卷轴' },
+        { id: 'material', label: '材质', placeholder: '如：铜版纸/写真布' },
+        { id: 'process', label: '工艺', placeholder: '如：覆膜/包边' },
+      ]},
+      { group: '内容信息', fields: [
+        { id: 'hasContent', label: '是否有内容稿', type: 'select', options: ['是', '否'] },
+        { id: 'contentDate', label: '内容交付时间', placeholder: '如：2026-06-01' },
+      ]},
+    ]
+  },
+  {
+    value: 'paper', label: '试卷', icon: '📝',
+    fields: [
+      { id: 'name', label: '名称', placeholder: '如：期中模拟卷' },
+      { id: 'quantity', label: '数量', placeholder: '如：1' },
+    ],
+    newFields: [
+      { group: '基本信息', fields: [
+        { id: 'pages', label: '份数', placeholder: '如：10' },
+        { id: 'spec', label: '尺寸/纸张', placeholder: '如：A3/8K/80g' },
+        { id: 'color', label: '印刷色数', placeholder: '如：单色/双色' },
+      ]},
+      { group: '内容信息', fields: [
+        { id: 'hasContent', label: '是否有内容稿', type: 'select', options: ['是', '否'] },
+        { id: 'contentDate', label: '内容交付时间', placeholder: '如：2026-06-01' },
+      ]},
+    ]
+  },
+  {
+    value: 'folder', label: '档案袋', icon: '📁',
+    fields: [
+      { id: 'name', label: '名称', placeholder: '如：牛皮纸档案袋' },
+      { id: 'quantity', label: '数量', placeholder: '如：1' },
+    ],
+    newFields: [
+      { group: '基本信息', fields: [
+        { id: 'spec', label: '规格', placeholder: '如：A4/加厚' },
+        { id: 'material', label: '材质', placeholder: '如：120g牛皮纸' },
+        { id: 'process', label: '工艺', placeholder: '如：烫印/丝印' },
+      ]},
+    ]
+  },
+  {
+    value: 'dm', label: 'DM单', icon: '📄',
+    fields: [
+      { id: 'name', label: '名称', placeholder: '如：产品介绍单页' },
+      { id: 'quantity', label: '数量', placeholder: '如：1' },
+    ],
+    newFields: [
+      { group: '基本信息', fields: [
+        { id: 'spec', label: '尺寸/材质', placeholder: '如：A4/157g铜版纸' },
+        { id: 'printSide', label: '印刷面数', placeholder: '如：双面/单面' },
+        { id: 'color', label: '印刷色数', placeholder: '如：4色/专色' },
+      ]},
+      { group: '内容信息', fields: [
+        { id: 'hasContent', label: '是否有内容稿', type: 'select', options: ['是', '否'] },
+        { id: 'contentDate', label: '内容交付时间', placeholder: '如：2026-06-01' },
+      ]},
+    ]
+  },
+];
+
+function renderMaterialSection(cat) {
+  const section = document.getElementById('material-section');
+  const list = document.getElementById('material-list');
+
+  if (cat.id !== 'boxbook') {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+
+  if (state.materials.length === 0) {
+    // 默认添加一本书籍
+    addMaterial();
+  }
+
+  renderMaterialList();
+}
+
+function addMaterial() {
+  state.materials.push({
+    id: Date.now(),
+    type: 'book',
+    makeType: 'existing', // 'new' | 'existing'
+    fields: {
+      title: '',
+      bookFormat: '',
+      pageCount: '',
+    },
+    newFields: {},
+  });
+  renderMaterialList();
+}
+
+function removeMaterial(id) {
+  state.materials = state.materials.filter(m => m.id !== id);
+  if (state.materials.length === 0) {
+    addMaterial(); // 保持至少有一项
+  }
+  renderMaterialList();
+}
+
+function updateMaterialType(id, type) {
+  const material = state.materials.find(m => m.id === id);
+  if (material) {
+    material.type = type;
+    material.makeType = 'existing';
+    material.fields = {};
+    material.newFields = {};
+    renderMaterialList();
+  }
+}
+
+function updateMaterialField(id, fieldId, value, isNewField = false) {
+  const material = state.materials.find(m => m.id === id);
+  if (material) {
+    if (isNewField) {
+      if (!material.newFields) material.newFields = {};
+      material.newFields[fieldId] = value;
+    } else {
+      material.fields[fieldId] = value;
+    }
+  }
+}
+
+function updateMaterialMakeType(id, makeType) {
+  const material = state.materials.find(m => m.id === id);
+  if (material) {
+    material.makeType = makeType;
+    material.newFields = {};
+    renderMaterialList();
+  }
+}
+
+function renderMaterialList() {
+  const list = document.getElementById('material-list');
+  list.innerHTML = state.materials.map((material, index) => {
+    const typeConfig = MATERIAL_TYPES.find(t => t.value === material.type) || MATERIAL_TYPES[0];
+    const isNew = material.makeType === 'new';
+    const hasNewFields = typeConfig.newFields && typeConfig.newFields.length > 0;
+
+    // 渲染字段（支持 select 类型）
+    function renderField(f, value, isNewField = false) {
+      if (f.type === 'select') {
+        return `
+          <div class="material-field">
+            <div class="cg-label">${f.label}</div>
+            <select class="cg-input" onchange="updateMaterialField(${material.id}, '${f.id}', this.value, ${isNewField})">
+              <option value="">请选择</option>
+              ${f.options.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${o}</option>`).join('')}
+            </select>
+          </div>`;
+      }
+      return `
+        <div class="material-field">
+          <div class="cg-label">${f.label}</div>
+          <input class="cg-input" type="text"
+            placeholder="${f.placeholder || ''}"
+            value="${value || ''}"
+            oninput="updateMaterialField(${material.id}, '${f.id}', this.value, ${isNewField})" />
+        </div>`;
+    }
+
+    // 渲染已有印刷版时的字段
+    function renderBasicFields() {
+      return (typeConfig.fields || []).map(f =>
+        renderField(f, material.fields[f.id])
+      ).join('');
+    }
+
+    // 渲染新做时的扩展字段（分组）
+    function renderNewFields() {
+      if (!hasNewFields) return '';
+      return typeConfig.newFields.map(group => `
+        <div class="material-group">
+          <div class="material-group-title">${group.group}</div>
+          ${group.fields.map(f =>
+            renderField(f, (material.newFields || {})[f.id], true)
+          ).join('')}
+        </div>
+      `).join('');
+    }
+
+    return `
+      <div class="material-item" data-id="${material.id}">
+        <div class="material-item-header">
+          <span class="cg-label">物料 ${index + 1}</span>
+          <select class="material-type-select" onchange="updateMaterialType(${material.id}, this.value)">
+            ${MATERIAL_TYPES.map(t => `
+              <option value="${t.value}" ${material.type === t.value ? 'selected' : ''}>
+                ${t.icon} ${t.label}
+              </option>
+            `).join('')}
+          </select>
+          <button class="material-remove-btn" onclick="removeMaterial(${material.id})" title="删除">✕</button>
+        </div>
+
+        <div class="material-maketype-row">
+          <label class="maketype-label">
+            <input type="radio" name="maketype-${material.id}" value="existing"
+              ${!isNew ? 'checked' : ''}
+              onchange="updateMaterialMakeType(${material.id}, 'existing')" />
+            已有印刷版
+          </label>
+          <label class="maketype-label">
+            <input type="radio" name="maketype-${material.id}" value="new"
+              ${isNew ? 'checked' : ''}
+              onchange="updateMaterialMakeType(${material.id}, 'new')" />
+            新做
+          </label>
+        </div>
+
+        <div class="material-fields">
+          ${renderBasicFields()}
+        </div>
+
+        ${isNew && hasNewFields ? `
+          <div class="material-new-fields">
+            ${renderNewFields()}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
 
 // ═══════════════════════════════════════════════════
 //  REFERENCE LINKS
@@ -4202,6 +4656,46 @@ async function exportPDF() {
         ${CONTENT_GUIDE_CFG[cat.id].fields.map(f => {
           const val = state.contentGuide[f.id] || '';
           return val ? `<div class="pdf-value">${f.label}：${val}</div>` : '';
+        }).join('')}
+      </div>` : ''}
+      ${cat.id === 'boxbook' && state.materials.length > 0 ? `
+      <div class="pdf-section">
+        <div class="pdf-section-title">📦 内含物料信息</div>
+        ${state.materials.map((m, i) => {
+          const typeConfig = MATERIAL_TYPES.find(t => t.value === m.type);
+          const makeTypeLabel = m.makeType === 'new' ? '🆕 新做' : '📋 已有印刷版';
+          let html = `
+          <div style="margin-bottom:12px;padding:10px;background:#f8f9fa;border-radius:8px;">
+            <div style="font-weight:600;color:#333;margin-bottom:6px;">${typeConfig ? typeConfig.icon : ''} ${typeConfig ? typeConfig.label : m.type} ${i + 1} <span style="font-size:12px;color:#666;margin-left:8px;">${makeTypeLabel}</span></div>`;
+
+          // 基础字段
+          html += Object.entries(m.fields).filter(([k, v]) => v).map(([k, v]) => {
+            const fieldConfig = typeConfig ? typeConfig.fields.find(f => f.id === k) : null;
+            const label = fieldConfig ? fieldConfig.label : k;
+            return `<div style="font-size:13px;color:#555;margin-left:8px;">${label}：${v}</div>`;
+          }).join('');
+
+          // 新做字段
+          if (m.makeType === 'new' && typeConfig && typeConfig.newFields) {
+            typeConfig.newFields.forEach(group => {
+              const groupFields = Object.entries(m.newFields || {}).filter(([k, v]) => v);
+              const hasGroupData = groupFields.some(([k]) => group.fields.some(f => f.id === k));
+              if (hasGroupData) {
+                html += `<div style="margin-left:8px;margin-top:6px;"><span style="font-size:12px;font-weight:600;color:var(--primary);">${group.group}</span>`;
+                group.fields.forEach(f => {
+                  const val = m.newFields ? m.newFields[f.id] : '';
+                  if (val) {
+                    const displayVal = f.type === 'select' ? val : val;
+                    html += `<div style="font-size:12px;color:#555;margin-left:8px;">${f.label}：${displayVal}</div>`;
+                  }
+                });
+                html += `</div>`;
+              }
+            });
+          }
+
+          html += `</div>`;
+          return html;
         }).join('')}
       </div>` : ''}
       ${['handy', 'cover', 'workbook', 'handcard'].includes(cat.id) ? `
