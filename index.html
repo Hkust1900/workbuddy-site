@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>印刷这块我都懂 — 教辅设计需求沟通平台</title>
+  <title>印刷排期小助手 — 教辅设计需求沟通平台</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -2508,7 +2508,7 @@
   <div class="nav-inner">
     <a class="logo" onclick="goHome()">
       <div class="logo-dot"></div>
-      印刷这块我都懂
+      印刷排期小助手
     </a>
     <ul class="nav-links">
       <li><a href="#categories">设计品类</a></li>
@@ -2815,7 +2815,7 @@
   <div class="footer-inner">
     <div class="logo" style="font-size:15px; cursor:default">
       <div class="logo-dot"></div>
-      印刷这块我都懂
+      印刷排期小助手
     </div>
     <div class="footer-copy">专为教辅设计师与教研运营打造 · 告别需求对不上的尴尬</div>
   </div>
@@ -4175,7 +4175,7 @@ async function exportPDF() {
     <div class="pdf-sheet" id="pdf-sheet-inner">
       <div class="pdf-header-bar">
         <h1>${name}</h1>
-        <p>由「印刷这块我都懂」生成 · ${new Date().toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'})}</p>
+        <p>由「印刷排期小助手」生成 · ${new Date().toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'})}</p>
       </div>
       ${(startDate || ops || dev || bookType || bookAttr) ? `
       <div class="pdf-section">
@@ -4231,7 +4231,7 @@ async function exportPDF() {
         <div style="font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;">${notes}</div>
       </div>` : ''}
       <div class="pdf-footer">
-        <span>印刷这块我都懂 · 教辅设计需求沟通平台</span>
+        <span>印刷排期小助手 · 教辅设计需求沟通平台</span>
         <span>如有疑问请联系设计团队确认</span>
       </div>
     </div>
