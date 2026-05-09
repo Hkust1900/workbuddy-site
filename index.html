@@ -4837,14 +4837,17 @@ async function sendToDingtalk() {
     // 构建排期文本
     let scheduleText = '';
     if (state.selectedDate) {
-      const [y, m, d] = state.selectedDate.split('-');
-      const date = new Date(y, m-1, d);
+      // state.selectedDate 是对象格式 {y, m, d}
+      const y = state.selectedDate.y;
+      const m = state.selectedDate.m;
+      const d = state.selectedDate.d;
+      const date = new Date(y, m, d);
       const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
       const launchDate = new Date(date);
       launchDate.setDate(launchDate.getDate() - 14);
       const printDate = new Date(date);
       printDate.setDate(printDate.getDate() - 7);
-      scheduleText = `启动设计：${launchDate.toLocaleDateString('zh-CN')} / 完稿确认：${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} / 印刷交付：${printDate.toLocaleDateString('zh-CN')}`;
+      scheduleText = `启动设计：${launchDate.toLocaleDateString('zh-CN')} / 完稿确认：${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')} / 印刷交付：${printDate.toLocaleDateString('zh-CN')}`;
     }
 
     // 物料信息
@@ -4887,13 +4890,19 @@ async function sendToDingtalk() {
     }
 
     // 构建 Markdown 消息
+    const projectNameVal = document.getElementById('project-name').value.trim();
+    const deadlineStr = state.selectedDate
+      ? `${state.selectedDate.y}-${String(state.selectedDate.m+1).padStart(2,'0')}-${String(state.selectedDate.d).padStart(2,'0')}`
+      : '未选择';
+    const notesVal = document.getElementById('project-notes').value.trim();
+
     const markdownText = [
       `## 📋 新印刷需求`,
       `---`,
-      `**项目名称**：${state.projectName || '未填写'}`,
+      `**项目名称**：${projectNameVal || '未填写'}`,
       `**品类**：${cat ? cat.name : '未选择'}`,
-      `**尺寸**：${size ? size.name + '（' + size.dim + '）' : '未选择'}`,
-      `**截止日期**：${state.selectedDate || '未选择'}`,
+      `**尺寸**：${size ? (size.name + (size.dim ? '（' + size.dim + '）' : '')) : '未选择'}`,
+      `**截止日期**：${deadlineStr}`,
       ``,
       scheduleText ? `**📅 排期**：\n${scheduleText}` : '',
       ``,
@@ -4901,7 +4910,7 @@ async function sendToDingtalk() {
       ``,
       refText,
       ``,
-      state.notes ? `**📝 备注**：\n${state.notes}` : '',
+      notesVal ? `**📝 备注**：\n${notesVal}` : '',
       ``,
       `---`,
       `👤 **提交时间**：${dateStr}`,
