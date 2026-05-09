@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -4808,10 +4809,129 @@ async function exportPDF() {
     pdf.save(`设计需求单_${safeName}.pdf`);
     container.innerHTML = '';
     showToast('success', `PDF 已导出：设计需求单_${safeName}.pdf`);
+    // 发送钉钉通知
+    sendToDingtalk();
   } catch (err) {
     container.innerHTML = '';
     console.error('[PDF ERROR]', err);
     showToast('error', `PDF 导出失败：${err.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  钉钉机器人通知
+// ═══════════════════════════════════════════════════
+const DINGTALK_ROBOT = {
+  token: '2c08580219bb3bddaa8649813e716d6835bd45b32eaff5f32d8f9c6aaa04fdea',
+  secret: 'SECa4eb482d0110999d1ab5a3a8668fef7fc8698ac53b62fa41a8de0dde55578e60'
+};
+
+async function sendToDingtalk() {
+  try {
+    const cat = CATEGORIES.find(c => c.id === state.category);
+    const size = SIZES.find(s => s.name === state.selectedSize);
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    // 构建排期文本
+    let scheduleText = '';
+    if (state.selectedDate) {
+      const [y, m, d] = state.selectedDate.split('-');
+      const date = new Date(y, m-1, d);
+      const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+      const launchDate = new Date(date);
+      launchDate.setDate(launchDate.getDate() - 14);
+      const printDate = new Date(date);
+      printDate.setDate(printDate.getDate() - 7);
+      scheduleText = `启动设计：${launchDate.toLocaleDateString('zh-CN')} / 完稿确认：${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} / 印刷交付：${printDate.toLocaleDateString('zh-CN')}`;
+    }
+
+    // 物料信息
+    let materialsText = '';
+    if (state.materials && state.materials.length > 0) {
+      materialsText = state.materials.map((m, i) => {
+        const typeConfig = MATERIAL_TYPES.find(t => t.value === m.type);
+        const typeName = typeConfig ? `${typeConfig.icon} ${typeConfig.label}` : m.type;
+        const makeType = m.makeType === 'new' ? '🆕 新做' : '📋 已有印刷版';
+        let text = `\n**${typeName} ${i+1}** ${makeType}`;
+        // 基础字段
+        Object.entries(m.fields).forEach(([k, v]) => {
+          if (v) {
+            const fieldConfig = typeConfig ? typeConfig.fields.find(f => f.id === k) : null;
+            text += `\n- ${fieldConfig ? fieldConfig.label : k}：${v}`;
+          }
+        });
+        // 新做字段
+        if (m.makeType === 'new' && typeConfig && typeConfig.newFields) {
+          typeConfig.newFields.forEach(group => {
+            const hasData = group.fields.some(f => m.newFields && m.newFields[f.id]);
+            if (hasData) {
+              text += `\n  **${group.group}**：`;
+              group.fields.forEach(f => {
+                if (m.newFields && m.newFields[f.id]) {
+                  text += `${f.label}=${m.newFields[f.id]}；`;
+                }
+              });
+            }
+          });
+        }
+        return text;
+      }).join('\n');
+    }
+
+    // 参考图
+    let refText = '';
+    if (state.refImages && state.refImages.length > 0) {
+      refText = `\n**📸 参考图**：${state.refImages.length} 张`;
+    }
+
+    // 构建 Markdown 消息
+    const markdownText = [
+      `## 📋 新印刷需求`,
+      `---`,
+      `**项目名称**：${state.projectName || '未填写'}`,
+      `**品类**：${cat ? cat.name : '未选择'}`,
+      `**尺寸**：${size ? size.name + '（' + size.dim + '）' : '未选择'}`,
+      `**截止日期**：${state.selectedDate || '未选择'}`,
+      ``,
+      scheduleText ? `**📅 排期**：\n${scheduleText}` : '',
+      ``,
+      materialsText ? `**📦 内含物料**：${materialsText}` : '',
+      ``,
+      refText,
+      ``,
+      state.notes ? `**📝 备注**：\n${state.notes}` : '',
+      ``,
+      `---`,
+      `👤 **提交时间**：${dateStr}`,
+    ].filter(Boolean).join('\n');
+
+    // 加签
+    const timestamp = Date.now().toString();
+    const stringToSign = timestamp + '\n' + DINGTALK_ROBOT.secret;
+    const sign = CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(stringToSign, DINGTALK_ROBOT.secret));
+    const webhook = `https://oapi.dingtalk.com/robot/send?access_token=${DINGTALK_ROBOT.token}&timestamp=${timestamp}&sign=${encodeURIComponent(sign)}`;
+
+    const payload = {
+      msgtype: 'markdown',
+      markdown: {
+        title: '新印刷需求',
+        text: markdownText
+      }
+    };
+
+    const resp = await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await resp.json();
+    if (result.errcode !== 0) {
+      console.warn('[钉钉] 发送失败:', result.errmsg);
+    }
+  } catch (err) {
+    console.error('[钉钉] 发送异常:', err);
   }
 }
 
