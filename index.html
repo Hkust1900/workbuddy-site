@@ -4828,8 +4828,8 @@ const DINGTALK_ROBOT = {
 
 async function sendToDingtalk() {
   try {
-    const cat = CATEGORIES.find(c => c.id === state.category);
-    const size = SIZES.find(s => s.name === state.selectedSize);
+    const cat = state.currentCat;
+    const size = state.selectedSize;
     const now = new Date();
     const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
